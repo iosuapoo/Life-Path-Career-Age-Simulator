@@ -381,6 +381,21 @@
                             <span>Submit & Collect Payment</span>
                         </button>
                     </div>
+
+                    <!-- Job Task Timing & Compensation Bar -->
+                    <div id="job-task-details-bar" class="p-3 bg-slate-900/90 border border-slate-800 rounded-xl flex flex-wrap justify-between items-center gap-3 text-xs">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-clock text-cyan-400"></i>
+                            <span class="text-slate-400 font-semibold">When you're doing it:</span>
+                            <span id="job-time-status" class="font-mono text-cyan-300 font-bold">Shift Hr 0 • Just Started</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-sack-dollar text-emerald-400"></i>
+                            <span class="text-slate-400 font-semibold">How much it will be:</span>
+                            <span id="job-payout-status" class="font-mono text-emerald-400 font-bold">+$0.00</span>
+                        </div>
+                    </div>
+
                     <div class="flex flex-wrap justify-between items-center gap-2">
                         <p id="typing-instruction-hint" class="text-xs text-slate-400 flex items-center gap-1">
                             <i class="fa-solid fa-circle-info text-cyan-400"></i>
@@ -954,6 +969,11 @@
             document.getElementById('customer-dialogue').textContent = `"${customer.request}"`;
             document.getElementById('customer-avatar-icon').className = `fa-solid ${customer.icon}`;
             document.getElementById('customer-payout-text').textContent = `+$${customer.payout.toFixed(2)}`;
+
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            document.getElementById('job-time-status').textContent = `Shift Hr ${state.shiftHoursWorked} • Logged at ${timeStr}`;
+            document.getElementById('job-payout-status').textContent = `+$${customer.payout.toFixed(2)} Task Payout (+$${state.currentPayRate.toFixed(2)}/hr Rate)`;
 
             document.getElementById('work-target-text').textContent = customer.request;
             document.getElementById('work-typing-input').value = '';
