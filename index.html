@@ -88,7 +88,7 @@
                 <div class="h-6 w-px bg-slate-800"></div>
 
                 <!-- Cash -->
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 relative">
                     <div class="w-7 h-7 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-xs">
                         <i class="fa-solid fa-dollar-sign"></i>
                     </div>
@@ -96,6 +96,7 @@
                         <div class="text-[9px] uppercase tracking-wider text-slate-400 font-semibold">Cash</div>
                         <div id="hud-cash" class="font-bold text-emerald-400 font-mono">$1,000</div>
                     </div>
+                    <div id="hud-cash-float" class="absolute -bottom-5 right-0 text-xs font-bold font-mono transition-all duration-500 opacity-0 pointer-events-none"></div>
                 </div>
 
                 <div class="h-6 w-px bg-slate-800"></div>
@@ -208,7 +209,7 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <span id="interview-job-tier" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase">Mid Level</span>
-                            <span class="text-xs text-slate-400 font-mono" id="interview-fee-paid">Fee Paid: $150</span>
+                            <span class="text-xs text-rose-400 font-mono font-semibold" id="interview-fee-paid"><i class="fa-solid fa-receipt text-rose-400"></i> Fee Paid: -$150</span>
                         </div>
                         <h2 id="interview-job-title" class="text-xl sm:text-2xl font-bold text-white">Software Engineer</h2>
                     </div>
@@ -216,7 +217,7 @@
 
                 <button id="btn-withdraw-app" class="text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-2 rounded-lg flex items-center gap-2 transition">
                     <i class="fa-solid fa-arrow-left"></i>
-                    <span>Withdraw Application</span>
+                    <span>Withdraw Application (Non-refundable)</span>
                 </button>
             </div>
 
@@ -455,6 +456,114 @@
     </main>
 
     <script>
+        // Preset Jobs Data Catalog
+        const PRESET_JOBS = [
+            { title: 'Fast Food Cashier', cost: 50, tier: 'Entry Level', tierNum: 1, baseSalary: 10, icon: 'fa-burger', desc: 'Assist customers with food orders, manage registers, and maintain lobby cleanliness.' },
+            { title: 'Coffee Barista', cost: 50, tier: 'Entry Level', tierNum: 1, baseSalary: 11, icon: 'fa-mug-hot', desc: 'Craft specialized espresso beverages, take client requests, and manage morning counter lines.' },
+            { title: 'Retail Store Assistant', cost: 50, tier: 'Entry Level', tierNum: 1, baseSalary: 12, icon: 'fa-store', desc: 'Help shoppers locate items, restock store shelves, and process checkout payments.' },
+            { title: 'Customer Support Agent', cost: 150, tier: 'Mid Level', tierNum: 2, baseSalary: 18, icon: 'fa-headset', desc: 'Resolve client complaints, handle tech inquiries, and ensure customer satisfaction.' },
+            { title: 'Junior Software Engineer', cost: 150, tier: 'Mid Level', tierNum: 2, baseSalary: 20, icon: 'fa-code', desc: 'Develop clean app features, resolve code bugs, and deliver software updates for clients.' },
+            { title: 'Graphic & UX Designer', cost: 150, tier: 'Mid Level', tierNum: 2, baseSalary: 22, icon: 'fa-palette', desc: 'Create brand logos, UI wireframes, and eye-catching visual assets for corporate clients.' },
+            { title: 'Senior Cloud Architect', cost: 300, tier: 'Senior Level', tierNum: 3, baseSalary: 35, icon: 'fa-laptop-code', desc: 'Design enterprise cloud infrastructure, lead dev teams, and optimize database systems.' },
+            { title: 'Medical Doctor / Surgeon', cost: 300, tier: 'Senior Level', tierNum: 3, baseSalary: 45, icon: 'fa-user-doctor', desc: 'Examine patients, perform emergency medical procedures, and formulate health plans.' },
+            { title: 'Corporate Attorney', cost: 300, tier: 'Senior Level', tierNum: 3, baseSalary: 40, icon: 'fa-scale-balanced', desc: 'Represent clients in legal arbitrations, draft commercial contracts, and review legislation.' },
+            { title: 'Commercial Pilot', cost: 500, tier: 'Executive', tierNum: 4, baseSalary: 60, icon: 'fa-plane', desc: 'Navigate international commercial flights, communicate with ATC, and manage flight crews.' },
+            { title: 'Chief Executive Officer (CEO)', cost: 500, tier: 'Executive', tierNum: 4, baseSalary: 65, icon: 'fa-crown', desc: 'Drive corporate strategy, consult board members, and expand company market capital.' }
+        ];
+
+        // Customer Requests Data Catalog
+        const CUSTOMER_REQUESTS = {
+            'Fast Food Cashier': [
+                { name: 'David Miller', badge: 'Regular', request: 'I would like a double cheeseburger with extra fries and a large soda please.', payout: 25, icon: 'fa-user' },
+                { name: 'Emma Watson', badge: 'VIP Customer', request: 'Can I order a grilled chicken combo meal with a vanilla milkshake?', payout: 35, icon: 'fa-user-tie' }
+            ],
+            'Coffee Barista': [
+                { name: 'Alex Rivera', badge: 'Morning Express', request: 'One large oat milk iced latte with two pumps of caramel syrup to go.', payout: 30, icon: 'fa-mug-saucer' },
+                { name: 'Sophia Chen', badge: 'Regular', request: 'A hot cappuccino with cinnamon sprinkle and a toasted blueberry bagel.', payout: 28, icon: 'fa-user-graduate' }
+            ],
+            'Junior Software Engineer': [
+                { name: 'Tech Solutions Inc.', badge: 'Client Ticket', request: 'Our payment checkout API is returning a 500 error. Please debug the backend endpoint.', payout: 75, icon: 'fa-server' },
+                { name: 'E-Commerce Corp', badge: 'Urgent Task', request: 'Build a dark mode toggle button and test responsiveness across mobile screens.', payout: 90, icon: 'fa-code-branch' }
+            ],
+            'Medical Doctor / Surgeon': [
+                { name: 'James Parker', badge: 'ER Patient', request: 'Patient experiencing chest tightness and elevated blood pressure. Conduct an ECG right away.', payout: 120, icon: 'fa-heart-pulse' },
+                { name: 'Olivia Taylor', badge: 'Outpatient', request: 'I need a comprehensive prescription review and seasonal allergy diagnosis.', payout: 100, icon: 'fa-stethoscope' }
+            ],
+            'Default': [
+                { name: 'Sarah Jenkins', badge: 'Regular Client', request: 'Hello! I need assistance regarding my recent account request and order update.', payout: 55, icon: 'fa-user' },
+                { name: 'Michael Scott', badge: 'Corporate Director', request: 'Please deliver the quarterly performance report and summarize key client milestones.', payout: 80, icon: 'fa-briefcase' },
+                { name: 'Elena Rostova', badge: 'Priority Client', request: 'We need urgent consultation to resolve our ongoing service inquiry today.', payout: 95, icon: 'fa-building' }
+            ]
+        };
+
+        // Job Specific Interview Questions Generator
+        const JOB_INTERVIEW_QUESTIONS = {
+            'Fast Food Cashier': [
+                "How do you ensure customer orders are taken accurately during busy lunch rushes?",
+                "How would you handle an upset customer who received the wrong food order?"
+            ],
+            'Coffee Barista': [
+                "What experience do you have with espresso machines and customer service?",
+                "How do you maintain quality and speed when there is a long morning coffee queue?"
+            ],
+            'Junior Software Engineer': [
+                "How do you approach debugging complex code bugs in production?",
+                "Describe a project where you collaborated with a team to ship software features."
+            ],
+            'Medical Doctor / Surgeon': [
+                "How do you prioritize patient safety under high-stress emergency room conditions?",
+                "Explain your approach to communicating complex diagnoses clearly to patients."
+            ],
+            'Default': [
+                "Why do you want to pursue this career path and what makes you a great fit?",
+                "How do you handle challenging situations and ensure high performance in this role?"
+            ]
+        };
+
+        function getInterviewQuestionsForJob(title) {
+            return JOB_INTERVIEW_QUESTIONS[title] || JOB_INTERVIEW_QUESTIONS['Default'];
+        }
+
+        // Web Audio Synthesizer
+        function playSfx(type) {
+            if (!state.soundEnabled) return;
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                if (type === 'click') {
+                    osc.frequency.value = 400;
+                    gain.gain.setValueAtTime(0.05, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.1);
+                } else if (type === 'success') {
+                    osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(659.25, ctx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.25);
+                } else if (type === 'fail') {
+                    osc.frequency.setValueAtTime(200, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.2);
+                } else if (type === 'type') {
+                    osc.frequency.value = 800 + Math.random() * 200;
+                    gain.gain.setValueAtTime(0.01, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.03);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.03);
+                }
+            } catch (e) {}
+        }
+
         // Game State
         const state = {
             age: 18,
@@ -487,187 +596,20 @@
             performanceMoney: 0
         };
 
-        // Tailored Interview Questions Repository per Job / Career Path
-        const JOB_INTERVIEW_QUESTIONS = {
-            'Barista / Cafe Associate': [
-                "How do you maintain drink quality and friendly service during peak morning rush hours?",
-                "How do you handle a situation where a customer is dissatisfied with their drink order?"
-            ],
-            'Cashier & Customer Service': [
-                "How do you resolve customer complaints smoothly while maintaining store policy?",
-                "What strategies do you use to ensure quick and accurate transactions when there is a long queue?"
-            ],
-            'Delivery Driver': [
-                "How do you plan your route efficiently when facing unexpected traffic or bad weather?",
-                "What steps do you take to guarantee package safety and verification upon arrival?"
-            ],
-            'Software Developer': [
-                "How do you approach debugging complex software bugs or payment integration errors under tight deadlines?",
-                "How do you ensure code readability and collaborate effectively with non-technical team members?"
-            ],
-            'Registered Nurse': [
-                "How do you prioritize patient care when responding to multiple urgent medical calls?",
-                "How do you maintain empathy and focus during long, demanding shifts?"
-            ],
-            'Graphic Designer': [
-                "How do you translate a client's vague vision into a polished, professional design?",
-                "How do you handle client feedback that requests major changes close to a deadline?"
-            ],
-            'Data Scientist & AI Specialist': [
-                "How do you evaluate dataset quality and prevent bias when training AI models?",
-                "How do you explain technical model findings to business executives in simple terms?"
-            ],
-            'Corporate Attorney / Lawyer': [
-                "How do you evaluate legal risk when reviewing complex business contracts?",
-                "How do you maintain client confidentiality and professional ethics under high pressure?"
-            ],
-            'Architectural Engineer': [
-                "How do you balance structural safety requirements with creative architectural designs?",
-                "What steps do you take when construction plans encounter unexpected site obstacles?"
-            ],
-            'Chief Executive Officer (CEO)': [
-                "What strategic factors do you consider before expanding into new markets or launching new product lines?",
-                "How do you build alignment and strong performance across executive team leaders?"
-            ],
-            'Commercial Airline Pilot': [
-                "How do you handle pre-flight safety checks and decision-making during severe weather conditions?",
-                "How do you ensure clear communication and calm leadership in the cockpit during inflight events?"
-            ],
-            'Neurosurgeon Specialist': [
-                "How do you prepare mentally and technically for delicate, high-risk surgical procedures?",
-                "How do you clearly explain complex surgical risks and treatment plans to patients?"
-            ]
-        };
-
-        // Function to Retrieve or Dynamically Generate Job-Specific Questions
-        function getInterviewQuestionsForJob(jobTitle) {
-            if (JOB_INTERVIEW_QUESTIONS[jobTitle]) {
-                return JOB_INTERVIEW_QUESTIONS[jobTitle];
-            }
-
-            const clean = jobTitle.toLowerCase();
-            if (clean.includes('doctor') || clean.includes('physician') || clean.includes('surgeon')) {
-                return [
-                    `How do you prioritize patient safety and diagnostic accuracy when treating high-priority cases as a ${jobTitle}?`,
-                    `How do you explain medical procedures clearly so patients feel comfortable and informed?`
-                ];
-            }
-            if (clean.includes('chef') || clean.includes('cook') || clean.includes('baker')) {
-                return [
-                    `How do you ensure kitchen speed, quality control, and food safety standards during peak hours?`,
-                    `How do you handle special dietary requests or customer complaints regarding food preparation?`
-                ];
-            }
-            if (clean.includes('teacher') || clean.includes('professor') || clean.includes('tutor')) {
-                return [
-                    `How do you adapt your teaching methodology to help students who learn at different paces?`,
-                    `How do you maintain engagement and positive communication with both students and parents?`
-                ];
-            }
-            if (clean.includes('engineer') || clean.includes('developer') || clean.includes('tech')) {
-                return [
-                    `How do you approach solving unexpected technical glitches or system architecture challenges in a ${jobTitle} role?`,
-                    `How do you document your workflow so team members can easily collaborate with you?`
-                ];
-            }
-            if (clean.includes('artist') || clean.includes('designer') || clean.includes('writer') || clean.includes('creator')) {
-                return [
-                    `How do you translate client requests into creative deliverables that exceed expectations?`,
-                    `How do you handle constructive criticism or tight revision deadlines?`
-                ];
-            }
-
-            return [
-                `Why are you passionate about pursuing a career as a ${jobTitle}, and what core skills make you ideal for this role?`,
-                `When faced with a demanding client or challenging task as a ${jobTitle}, what specific steps do you take to resolve it?`
-            ];
-        }
-
-        // Customer Database with Requests per Job
-        const CUSTOMER_REQUESTS = {
-            'Software Developer': [
-                { name: "TechCorp CEO", icon: "fa-user-tie", request: "Our payment API broke during peak sales! Please patch the webhook integration immediately.", payout: 85, badge: "VIP Client" },
-                { name: "Indie Studio", icon: "fa-gamepad", request: "We have a memory leak in player inventory physics. Fix the data array algorithm.", payout: 65, badge: "Client" },
-                { name: "Startup Founder", icon: "fa-lightbulb", request: "Help us deploy a reactive customer dashboard with secure OAuth authentication.", payout: 75, badge: "Urgent" }
-            ],
-            'Doctor': [
-                { name: "Mr. Henderson", icon: "fa-user-injured", request: "Doctor, I have high blood pressure and chest fever. Please prescribe medication.", payout: 90, badge: "Patient" },
-                { name: "Elena Vance", icon: "fa-hospital-user", request: "My daughter injured her wrist during basketball practice. Need X-ray inspection.", payout: 70, badge: "Emergency" },
-                { name: "Arthur Pendelton", icon: "fa-wheelchair", request: "I need a post-surgery recovery checkup and mobility progress report.", payout: 80, badge: "Regular" }
-            ],
-            'Barista / Cafe Associate': [
-                { name: "Morning Commuter", icon: "fa-user-clock", request: "Can I get an iced double oat milk latte with two pumps of vanilla syrup please?", payout: 25, badge: "In a Rush" },
-                { name: "College Student", icon: "fa-graduation-cap", request: "I'm studying for finals! Large dark roast coffee with almond milk and a croissant.", payout: 30, badge: "Regular" },
-                { name: "Local Artist", icon: "fa-palette", request: "I would love a hot matcha latte with intricate foam leaf artwork on top.", payout: 35, badge: "VIP" }
-            ],
-            'Corporate Attorney / Lawyer': [
-                { name: "Venture Partner", icon: "fa-briefcase", request: "We are acquiring a tech startup. Review the non-disclosure terms and contract clause.", payout: 150, badge: "Corporate" },
-                { name: "Business Owner", icon: "fa-building", request: "Draft a defense motion against a trademark infringement lawsuit filed yesterday.", payout: 130, badge: "Urgent" }
-            ],
-            'Default': [
-                { name: "Customer Alex", icon: "fa-user", request: "Hello! I need help processing my request and finalizing today's service transaction.", payout: 45, badge: "Customer" },
-                { name: "Client Taylor", icon: "fa-user-check", request: "Please assist me with reviewing my account statement and scheduling delivery.", payout: 50, badge: "Client" },
-                { name: "Patron Sam", icon: "fa-circle-user", request: "I have a quick question about service options and need your expert recommendation.", payout: 40, badge: "Regular" }
-            ]
-        };
-
-        // Preset Job Catalog
-        const PRESET_JOBS = [
-            { title: 'Barista / Cafe Associate', tier: 'Entry Level', tierNum: 1, cost: 50, baseSalary: 10, icon: 'fa-mug-hot', desc: 'Serve coffee & baked goods to eager morning patrons.' },
-            { title: 'Cashier & Customer Service', tier: 'Entry Level', tierNum: 1, cost: 50, baseSalary: 10, icon: 'fa-store', desc: 'Assist store customers with checkout and inquiries.' },
-            { title: 'Delivery Driver', tier: 'Entry Level', tierNum: 1, cost: 50, baseSalary: 11, icon: 'fa-truck-fast', desc: 'Deliver packages directly to waiting clients.' },
+        // Deduct cash with visual floating fee text & sound
+        function deductCash(amount, reason) {
+            state.cash = Math.max(0, state.cash - amount);
+            updateHud();
             
-            { title: 'Software Developer', tier: 'Mid Level', tierNum: 2, cost: 150, baseSalary: 18, icon: 'fa-code', desc: 'Build software solutions for corporate and startup clients.' },
-            { title: 'Registered Nurse', tier: 'Mid Level', tierNum: 2, cost: 150, baseSalary: 16, icon: 'fa-user-nurse', desc: 'Care for patients in hospital emergency rooms.' },
-            { title: 'Graphic Designer', tier: 'Mid Level', tierNum: 2, cost: 150, baseSalary: 15, icon: 'fa-palette', desc: 'Design brand visual assets for requesting clients.' },
-
-            { title: 'Data Scientist & AI Specialist', tier: 'Senior Level', tierNum: 3, cost: 300, baseSalary: 28, icon: 'fa-brain', desc: 'Analyze data models for high-value enterprise clients.' },
-            { title: 'Corporate Attorney / Lawyer', tier: 'Senior Level', tierNum: 3, cost: 300, baseSalary: 32, icon: 'fa-scale-balanced', desc: 'Represent clients in court arbitration and litigation.' },
-            { title: 'Architectural Engineer', tier: 'Senior Level', tierNum: 3, cost: 300, baseSalary: 30, icon: 'fa-compass-drafting', desc: 'Draft skyscraper blueprints for property developers.' },
-
-            { title: 'Chief Executive Officer (CEO)', tier: 'Executive', tierNum: 4, cost: 500, baseSalary: 55, icon: 'fa-crown', desc: 'Direct corporate strategy and consult key board investors.' },
-            { title: 'Commercial Airline Pilot', tier: 'Executive', tierNum: 4, cost: 500, baseSalary: 45, icon: 'fa-plane', desc: 'Fly passengers safely to international flight destinations.' },
-            { title: 'Neurosurgeon Specialist', tier: 'Executive', tierNum: 4, cost: 500, baseSalary: 60, icon: 'fa-hospital', desc: 'Perform surgeries on patients needing specialized care.' }
-        ];
-
-        // Web Audio Synthesizer Sound Engine
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playSfx(type) {
-            if (!state.soundEnabled) return;
-            try {
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-
-                const now = audioCtx.currentTime;
-                if (type === 'click' || type === 'type') {
-                    osc.frequency.setValueAtTime(type === 'type' ? 650 : 400, now);
-                    osc.frequency.exponentialRampToValueAtTime(220, now + 0.03);
-                    gain.gain.setValueAtTime(0.05, now);
-                    gain.gain.linearRampToValueAtTime(0, now + 0.03);
-                    osc.start(now);
-                    osc.stop(now + 0.03);
-                } else if (type === 'success') {
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(440, now);
-                    osc.frequency.setValueAtTime(554.37, now + 0.1);
-                    osc.frequency.setValueAtTime(659.25, now + 0.2);
-                    gain.gain.setValueAtTime(0.15, now);
-                    gain.gain.linearRampToValueAtTime(0, now + 0.35);
-                    osc.start(now);
-                    osc.stop(now + 0.35);
-                } else if (type === 'fail') {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(280, now);
-                    osc.frequency.exponentialRampToValueAtTime(90, now + 0.25);
-                    gain.gain.setValueAtTime(0.2, now);
-                    gain.gain.linearRampToValueAtTime(0, now + 0.25);
-                    osc.start(now);
-                    osc.stop(now + 0.25);
-                }
-            } catch (e) { console.error(e); }
+            // Show floating negative cash animation
+            const floatEl = document.getElementById('hud-cash-float');
+            if (floatEl) {
+                floatEl.textContent = `-$${amount} ${reason ? '(' + reason + ')' : ''}`;
+                floatEl.className = 'absolute -bottom-5 right-0 text-xs font-bold font-mono text-rose-400 transition-all duration-500 opacity-100 translate-y-0';
+                setTimeout(() => {
+                    floatEl.className = 'absolute -bottom-5 right-0 text-xs font-bold font-mono text-rose-400 transition-all duration-500 opacity-0 -translate-y-2';
+                }, 1800);
+            }
         }
 
         // View Controller Helper
@@ -844,17 +786,16 @@
 
             playSfx('click');
 
-            // Deduct application fee
-            state.cash -= cost;
+            // Deduct non-refundable application fee with visual HUD feedback
+            deductCash(cost, 'App Fee');
 
             const questions = getInterviewQuestionsForJob(title);
             state.interviewJob = { title, cost, tier, icon, baseSalary, tierNum, questions };
             state.interviewStep = 1;
-            updateHud();
 
             document.getElementById('interview-job-title').textContent = title;
             document.getElementById('interview-job-tier').textContent = tier;
-            document.getElementById('interview-fee-paid').textContent = `Fee Paid: $${cost}`;
+            document.getElementById('interview-fee-paid').textContent = `Fee Paid: -$${cost} (Non-refundable)`;
             document.getElementById('interview-job-icon').className = `fa-solid ${icon}`;
             document.getElementById('interview-q-step').textContent = '1';
 
@@ -863,7 +804,7 @@
             showView('interview');
 
             renderQuickSuggestions(title);
-            appendChatMessage('interviewer', `Hello! Welcome to your interview for the **${title}** position.\n\n**Question 1:** ${questions[0]}`);
+            appendChatMessage('interviewer', `💸 **Application Fee Charged:** -$${cost} deducted from cash balance.\n\nHello! Welcome to your interview for the **${title}** position.\n\n**Question 1:** ${questions[0]}`);
         }
 
         // Render Quick Answer Suggestion Chips
@@ -1114,12 +1055,9 @@
 
             if (errNotice) errNotice.classList.add('hidden');
 
-            const accuracy = 100;
-            
             let perfDelta = Math.round(state.currentTaskPayout * 0.5) + 15;
             let payRateChange = 0.50;
             let ratingChange = 0.2;
-            let isGoodPerformance = true;
 
             playSfx('success');
             showPerformanceToast(true, "EXCELLENT SERVICE! Response submitted and full payment collected!", `+${perfDelta.toFixed(2)} Bonus`);
@@ -1187,8 +1125,6 @@
         const btnRetireJob = document.getElementById('btn-retire-job');
         if (btnRetireJob) {
             btnRetireJob.addEventListener('click', () => {
-                if (!confirm("Retire from your current job? Serving many customers boosts your Prestige Level and unlocks top tier jobs!")) return;
-
                 playSfx('success');
                 state.prestige = Math.min(4, state.prestige + 1);
                 state.currentJob = null;
@@ -1246,7 +1182,7 @@
         const btnRestart = document.getElementById('btn-restart');
         if (btnRestart) {
             btnRestart.addEventListener('click', () => {
-                if (confirm("Reset life and restart at age 18 with $1,000?")) restartLife();
+                restartLife();
             });
         }
 
