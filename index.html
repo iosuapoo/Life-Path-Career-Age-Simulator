@@ -166,7 +166,7 @@
                             <input type="text" id="custom-job-input" placeholder="e.g. Esports Champion, Doctor, Game Developer, Chef, Pilot..." 
                                 class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm transition">
                             <div id="custom-cost-badge" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono font-bold bg-slate-800 text-emerald-400 px-2.5 py-1 rounded-md border border-slate-700">
-                                Fee: Free
+                                Fee: $150
                             </div>
                         </div>
                         <button id="btn-apply-custom" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold px-6 py-3.5 rounded-xl shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2 transition active:scale-95 text-sm">
@@ -730,6 +730,7 @@
 
             PRESET_JOBS.forEach(job => {
                 const unlocked = job.tierNum <= state.prestige;
+                const canAfford = state.cash >= job.cost;
 
                 const card = document.createElement('div');
                 card.className = `glass-panel rounded-2xl p-5 border border-slate-800 flex flex-col justify-between transition hover:-translate-y-1 ${!unlocked ? 'opacity-50' : ''}`;
@@ -753,12 +754,12 @@
                     <div class="mt-5 pt-4 border-t border-slate-800/80 flex justify-between items-center">
                         <div>
                             <div class="text-[10px] uppercase text-slate-500 font-semibold">App Fee</div>
-                            <div class="text-sm font-mono font-bold text-emerald-400">FREE</div>
+                            <div class="text-sm font-mono font-bold ${canAfford ? 'text-emerald-400' : 'text-rose-400'}">$${job.cost}</div>
                         </div>
-                        <button onclick="startInterview('${job.title}', 0, '${job.tier}', '${job.icon}', ${job.baseSalary}, ${job.tierNum})" 
-                            ${!unlocked ? 'disabled' : ''}
-                            class="bg-slate-800 hover:bg-emerald-600 hover:text-slate-950 disabled:pointer-events-none text-emerald-400 font-bold px-4 py-2 rounded-xl text-xs border border-emerald-500/30 transition flex items-center gap-1.5">
-                            <span>Apply</span>
+                        <button onclick="startInterview('${job.title}', ${job.cost}, '${job.tier}', '${job.icon}', ${job.baseSalary}, ${job.tierNum})" 
+                            ${!unlocked || !canAfford ? 'disabled' : ''}
+                            class="bg-slate-800 hover:bg-emerald-600 hover:text-slate-950 disabled:opacity-40 disabled:pointer-events-none text-emerald-400 font-bold px-4 py-2 rounded-xl text-xs border border-emerald-500/30 transition flex items-center gap-1.5">
+                            <span>${!canAfford ? "Can't Afford" : 'Apply'}</span>
                             <i class="fa-solid fa-chevron-right text-[10px]"></i>
                         </button>
                     </div>
@@ -770,6 +771,7 @@
         // Real-time Input Validator for Custom Job
         const customJobInput = document.getElementById('custom-job-input');
         const customJobError = document.getElementById('custom-job-error');
+        const customCostBadge = document.getElementById('custom-cost-badge');
 
         if (customJobInput) {
             customJobInput.addEventListener('input', () => {
@@ -777,6 +779,7 @@
                 if (!text) {
                     customJobError.classList.add('hidden');
                     customJobInput.classList.remove('border-rose-500', 'focus:ring-rose-500');
+                    if (customCostBadge) customCostBadge.textContent = 'Fee: $150';
                     return;
                 }
 
@@ -789,6 +792,8 @@
                     customJobError.classList.add('hidden');
                     customJobInput.classList.remove('border-rose-500');
                     customJobInput.classList.add('focus:ring-cyan-500');
+                    const info = estimateCustomJob(text);
+                    if (customCostBadge) customCostBadge.textContent = `Fee: $${info.cost}`;
                 }
             });
         }
@@ -816,25 +821,40 @@
                     return;
                 }
 
+                const info = estimateCustomJob(inputVal);
+                if (state.cash < info.cost) {
+                    playSfx('fail');
+                    customJobError.querySelector('span').textContent = `You need $${info.cost} cash to apply for this job!`;
+                    customJobError.classList.remove('hidden');
+                    return;
+                }
+
                 customJobError.classList.add('hidden');
                 customJobInput.classList.remove('border-rose-500');
-                const info = estimateCustomJob(inputVal);
                 startInterview(inputVal, info.cost, info.tier, info.icon, info.baseSalary, info.tierNum);
             });
         }
 
         // Start Multi-Question Interview
         function startInterview(title, cost, tier, icon, baseSalary, tierNum) {
+            if (state.cash < cost) {
+                playSfx('fail');
+                return;
+            }
+
             playSfx('click');
 
+            // Deduct application fee
+            state.cash -= cost;
+
             const questions = getInterviewQuestionsForJob(title);
-            state.interviewJob = { title, cost: 0, tier, icon, baseSalary, tierNum, questions };
+            state.interviewJob = { title, cost, tier, icon, baseSalary, tierNum, questions };
             state.interviewStep = 1;
             updateHud();
 
             document.getElementById('interview-job-title').textContent = title;
             document.getElementById('interview-job-tier').textContent = tier;
-            document.getElementById('interview-fee-paid').textContent = `Fee Paid: $0 (Free)`;
+            document.getElementById('interview-fee-paid').textContent = `Fee Paid: $${cost}`;
             document.getElementById('interview-job-icon').className = `fa-solid ${icon}`;
             document.getElementById('interview-q-step').textContent = '1';
 
