@@ -47,6 +47,13 @@
         ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
         ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .pulse-customer { animation: pulse-ring 2s infinite ease-in-out; }
     </style>
 </head>
 <body class="h-full flex flex-col bg-slate-950 text-slate-100 antialiased selection:bg-emerald-500 selection:text-black">
@@ -143,28 +150,35 @@
                 </span>
                 <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-100 tracking-tight">Select or Type Any Career Path</h2>
                 <p class="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto">
-                    Choose a career to apply for! High performance at work unlocks higher prestige and bigger job opportunities upon retirement.
+                    Choose a career to apply for! Assist waiting customers/clients, perform well, and increase your prestige to unlock top-tier roles.
                 </p>
             </div>
 
-            <!-- Custom Job Input -->
-            <div class="glass-panel rounded-2xl p-6 border border-slate-800 shadow-xl space-y-4 glow-blue">
+            <!-- Custom Job Input with Real-time Job Title Validation -->
+            <div class="glass-panel rounded-2xl p-6 border border-slate-800 shadow-xl space-y-3 glow-blue">
                 <label for="custom-job-input" class="block text-sm font-semibold text-slate-200 flex items-center gap-2">
                     <i class="fa-solid fa-wand-magic-sparkles text-cyan-400"></i>
                     <span>Type Any Custom Career Title:</span>
                 </label>
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <div class="relative flex-1">
-                        <input type="text" id="custom-job-input" placeholder="e.g. Esports Champion, Quantum Physicist, Movie Director, Stunt Driver..." 
-                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm">
-                        <div id="custom-cost-badge" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono font-bold bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md border border-slate-700">
-                            Est. Fee: $150
+                <div>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <div class="relative flex-1">
+                            <input type="text" id="custom-job-input" placeholder="e.g. Esports Champion, Doctor, Game Developer, Chef, Pilot..." 
+                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm transition">
+                            <div id="custom-cost-badge" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono font-bold bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md border border-slate-700">
+                                Est. Fee: $150
+                            </div>
                         </div>
+                        <button id="btn-apply-custom" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold px-6 py-3.5 rounded-xl shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2 transition active:scale-95 text-sm">
+                            <span>Apply for Custom Job</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
                     </div>
-                    <button id="btn-apply-custom" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold px-6 py-3.5 rounded-xl shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2 transition active:scale-95 text-sm">
-                        <span>Apply for Custom Job</span>
-                        <i class="fa-solid fa-arrow-right"></i>
-                    </button>
+                    <!-- Dynamic "This is not a job" Error Notice -->
+                    <p id="custom-job-error" class="text-xs text-rose-400 font-bold mt-2.5 hidden flex items-center gap-1.5 animate-bounce">
+                        <i class="fa-solid fa-circle-xmark text-sm"></i>
+                        <span>This is not a job! Please enter a recognized career or profession.</span>
+                    </p>
                 </div>
             </div>
 
@@ -243,7 +257,7 @@
             </div>
         </section>
 
-        <!-- ================= VIEW 3: ON-THE-JOB WORKPLACE (TYPING WORK SHIFT) ================= -->
+        <!-- ================= VIEW 3: CUSTOMER SERVICE & WORKPLACE VIEW ================= -->
         <section id="view-workplace" class="hidden w-full max-w-4xl mx-auto space-y-6">
             <!-- Work Header -->
             <div class="glass-panel rounded-2xl p-6 border border-slate-800 flex flex-wrap justify-between items-center gap-4 glow-green">
@@ -254,7 +268,7 @@
                             Rate: $10.00 / hr
                         </span>
                     </div>
-                    <p class="text-xs text-slate-400 mt-1">Spend work operational expenses on tools/materials, then type what you do to execute tasks & earn profits!</p>
+                    <p class="text-xs text-slate-400 mt-1">Customers & Clients are arriving! Type out their exact request to assist them and earn wages, tips & bonuses!</p>
                 </div>
 
                 <div class="flex items-center gap-3">
@@ -268,69 +282,91 @@
                 </div>
             </div>
 
-            <!-- Shift Live Performance Stats -->
+            <!-- Customer Shift Live Performance Stats -->
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                 <div class="glass-panel p-3 rounded-xl border border-slate-800 text-center">
-                    <div class="text-[10px] uppercase font-semibold text-slate-400">Hours Worked</div>
-                    <div id="stat-shift-hours" class="text-lg font-bold font-mono text-cyan-400">0 hrs</div>
+                    <div class="text-[10px] uppercase font-semibold text-slate-400">Customers Served</div>
+                    <div id="stat-customers-count" class="text-lg font-bold font-mono text-cyan-400">0</div>
                 </div>
                 <div class="glass-panel p-3 rounded-xl border border-slate-800 text-center">
-                    <div class="text-[10px] uppercase font-semibold text-slate-400">Task Cost</div>
-                    <div id="stat-task-cost" class="text-lg font-bold font-mono text-rose-400">-$20</div>
+                    <div class="text-[10px] uppercase font-semibold text-slate-400">Shift Hours</div>
+                    <div id="stat-shift-hours" class="text-lg font-bold font-mono text-indigo-400">0 hrs</div>
                 </div>
                 <div class="glass-panel p-3 rounded-xl border border-slate-800 text-center">
-                    <div class="text-[10px] uppercase font-semibold text-slate-400">Typing WPM</div>
+                    <div class="text-[10px] uppercase font-semibold text-slate-400">Typing Speed</div>
                     <div id="stat-shift-wpm" class="text-lg font-bold font-mono text-emerald-400">0 WPM</div>
                 </div>
                 <div class="glass-panel p-3 rounded-xl border border-slate-800 text-center">
-                    <div class="text-[10px] uppercase font-semibold text-slate-400">Accuracy</div>
-                    <div id="stat-shift-accuracy" class="text-lg font-bold font-mono text-emerald-400">100%</div>
+                    <div class="text-[10px] uppercase font-semibold text-slate-400">Service Rating</div>
+                    <div id="stat-shift-rating" class="text-lg font-bold font-mono text-amber-400">5.0 ⭐</div>
                 </div>
                 <div class="glass-panel p-3 rounded-xl border border-slate-800 text-center">
-                    <div class="text-[10px] uppercase font-semibold text-slate-400">Performance</div>
-                    <div id="stat-shift-performance" class="text-xs font-bold text-emerald-400 mt-1">Excellent</div>
+                    <div class="text-[10px] uppercase font-semibold text-slate-400">Patience Level</div>
+                    <div id="stat-customer-patience" class="text-xs font-bold text-emerald-400 mt-1">100% High</div>
                 </div>
                 <div class="glass-panel p-3 rounded-xl border border-slate-800 text-center">
-                    <div class="text-[10px] uppercase font-semibold text-slate-400">Task Payout</div>
-                    <div id="stat-task-payout" class="text-lg font-bold font-mono text-emerald-400">+$60</div>
+                    <div class="text-[10px] uppercase font-semibold text-slate-400">Expected Tip</div>
+                    <div id="stat-customer-tip" class="text-lg font-bold font-mono text-emerald-400">+$15.00</div>
                 </div>
             </div>
 
-            <!-- Active Typing Prompt Board -->
-            <div class="glass-panel rounded-2xl p-6 border border-slate-800 space-y-4">
+            <!-- Customer Service Waiting Room & Active Customer Interaction -->
+            <div class="glass-panel rounded-2xl p-6 border border-slate-800 space-y-5">
                 <div class="flex flex-wrap justify-between items-center border-b border-slate-800 pb-3 gap-2">
                     <div class="text-sm font-bold text-slate-200 flex items-center gap-2">
-                        <i class="fa-solid fa-receipt text-emerald-400"></i>
-                        <span>Workplace Action Log to Type:</span>
+                        <i class="fa-solid fa-users text-cyan-400"></i>
+                        <span>Customer Waiting Line:</span>
+                        <span id="queue-badge" class="bg-cyan-500/10 text-cyan-400 text-xs px-2.5 py-0.5 rounded-full border border-cyan-500/20 font-mono">3 Waiting</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <span id="task-cost-badge" class="text-xs font-mono font-bold text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-md border border-rose-500/20">Cost: -$20</span>
-                        <span id="task-stage-badge" class="text-xs font-mono text-slate-400">Task #1</span>
+                        <span id="customer-status-badge" class="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Customer Arrived!
+                        </span>
                     </div>
                 </div>
 
-                <!-- Text to type target (Describes what you spent money on & what you do) -->
-                <div id="work-target-text" class="p-4 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-mono text-sm leading-relaxed tracking-wide select-none">
-                    Loading work action log...
+                <!-- Active Customer Profile Box -->
+                <div class="bg-slate-900/90 rounded-2xl p-5 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center gap-4 relative overflow-hidden">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center text-white text-3xl shadow-lg flex-shrink-0 pulse-customer">
+                        <i id="customer-avatar-icon" class="fa-solid fa-user text-2xl"></i>
+                    </div>
+                    <div class="flex-1 space-y-1">
+                        <div class="flex items-center gap-2">
+                            <h4 id="customer-name" class="font-bold text-white text-base sm:text-lg">Customer #1: Sarah Jenkins</h4>
+                            <span id="customer-badge-type" class="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">Regular</span>
+                        </div>
+                        <p id="customer-dialogue" class="text-slate-300 text-xs sm:text-sm italic font-sans leading-relaxed">
+                            "Hello! I need assistance with my order right away."
+                        </p>
+                    </div>
+                    <div class="text-right sm:text-right w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800">
+                        <div class="text-[10px] text-slate-500 uppercase font-semibold">Base Reward</div>
+                        <div id="customer-payout-text" class="text-emerald-400 font-mono font-extrabold text-lg">+$55.00</div>
+                    </div>
                 </div>
 
-                <!-- Workplace Input Area -->
+                <!-- Text to type to help customer -->
                 <div class="space-y-2">
-                    <textarea id="work-typing-input" rows="3" placeholder="Spend funds and type what you did above to execute task & collect earnings..."
-                        class="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-slate-100 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none transition"></textarea>
-                    <div class="flex justify-between items-center text-xs text-slate-500">
-                        <span>Completing this task deducts task expenses & credits wages + profits to cash!</span>
-                        <span id="work-typing-progress">0% Completed</span>
+                    <div class="flex justify-between items-center text-xs font-semibold text-slate-400">
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-keyboard text-emerald-400"></i> Type your response to help this customer:</span>
+                        <span id="work-typing-progress" class="font-mono text-cyan-400">0% Completed</span>
                     </div>
+
+                    <div id="work-target-text" class="p-4 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 font-mono text-sm leading-relaxed tracking-wide select-none">
+                        Loading customer request...
+                    </div>
+
+                    <textarea id="work-typing-input" rows="3" placeholder="Type the resolution text above to help the customer..."
+                        class="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-slate-100 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none transition"></textarea>
                 </div>
 
-                <!-- Shift Activity Feed -->
+                <!-- Shift Activity Log -->
                 <div class="pt-3 border-t border-slate-800/80">
                     <div class="text-xs font-bold text-slate-400 mb-2 flex items-center gap-1.5">
-                        <i class="fa-solid fa-list-check text-cyan-400"></i> Recent Completed Work Actions:
+                        <i class="fa-solid fa-clock-rotate-left text-cyan-400"></i> Served Customers History:
                     </div>
                     <div id="work-history-log" class="space-y-1.5 max-h-32 overflow-y-auto text-xs font-mono text-slate-400">
-                        <div class="text-slate-600 italic">No tasks completed yet this shift.</div>
+                        <div class="text-slate-600 italic">No customers helped yet this shift. Waiting for your first customer!</div>
                     </div>
                 </div>
             </div>
@@ -390,7 +426,7 @@
         // Game State
         const state = {
             age: 18,
-            deathAge: Math.floor(Math.random() * 16) + 75, // Secret death age between 75 and 90
+            deathAge: Math.floor(Math.random() * 16) + 75,
             cash: 1000,
             prestige: 1,
             totalEarnings: 1000,
@@ -404,68 +440,120 @@
             interviewStep: 1,
             interviewJob: null,
 
-            // Workplace Typing & Task Expense state
+            // Customer Service Workplace State
+            customersServed: 0,
             shiftHoursWorked: 0,
+            currentCustomer: null,
+            customerQueueCount: 3,
             currentPromptText: "",
-            currentTaskCost: 20,
-            currentTaskPayout: 60,
+            currentTaskCost: 0,
+            currentTaskPayout: 50,
             typingStartTime: null,
             totalTypedChars: 0,
             errorCount: 0,
             currentPayRate: 10,
-            taskCount: 1,
-            taskLog: []
+            rating: 5.0,
+            patience: 100
         };
 
-        const WORK_PROMPTS = {
+        // Recognized Job Keywords & Suffixes Dictionary for Validation
+        const KNOWN_JOB_TITLES = [
+            'doctor', 'nurse', 'engineer', 'developer', 'programmer', 'lawyer', 'attorney', 'teacher',
+            'professor', 'chef', 'cook', 'baker', 'barista', 'waiter', 'waitress', 'pilot', 'astronaut',
+            'police', 'officer', 'firefighter', 'detective', 'artist', 'designer', 'architect', 'writer',
+            'author', 'journalist', 'reporter', 'actor', 'actress', 'singer', 'musician', 'dentist',
+            'surgeon', 'vet', 'veterinarian', 'electrician', 'plumber', 'carpenter', 'mechanic', 'driver',
+            'cashier', 'accountant', 'banker', 'trader', 'investor', 'ceo', 'cto', 'manager', 'director',
+            'president', 'politician', 'judge', 'scientist', 'biologist', 'chemist', 'physicist', 'astronomer',
+            'esports champion', 'streamer', 'influencer', 'youtuber', 'gamer', 'coach', 'trainer', 'athlete',
+            'swimmer', 'runner', 'boxer', 'stunt driver', 'photographer', 'videographer', 'animator',
+            'barber', 'stylist', 'model', 'agent', 'broker', 'realtor', 'janitor', 'cleaner', 'guard',
+            'soldier', 'sailor', 'captain', 'therapist', 'psychologist', 'pharmacist', 'paramedic',
+            'librarian', 'curator', 'geologist', 'ecologist', 'statist', 'analyst', 'consultant',
+            'flight attendant', 'bellhop', 'concierge', 'tailor', 'jeweler', 'florist', 'farmer',
+            'rancher', 'fisherman', 'miner', 'welder', 'machinist', 'surveyor', 'translator',
+            'interpreter', 'editor', 'proofreader', 'copywriter', 'marketer', 'recruiter', 'historian',
+            'archaeologist', 'sociologist', 'philosopher', 'statistician', 'actuary', 'botanist', 'zoologist',
+            'geneticist', 'microbiologist', 'immunologist', 'neurologist', 'cardiologist', 'dermatologist',
+            'pediatrician', 'psychiatrist', 'radiologist', 'pathologist', 'anesthesiologist', 'oncologist',
+            'orthopedist', 'optometrist', 'audiologist', 'podiatrist', 'chiropractor', 'dietitian',
+            'nutritionist', 'epidemiologist', 'toxicologist', 'pharmacologist', 'virologist', 'bacteriologist',
+            'mycologist', 'parasitologist', 'biochemist', 'biophysicist', 'bioinformatician', 'neuroscientist',
+            'endocrinologist', 'gastroenterologist', 'nephrologist', 'pulmonologist', 'rheumatologist',
+            'urologist', 'hematologist', 'immunopathologist', 'histopathologist', 'cytopathologist', 'toxicopathologist'
+        ];
+
+        const JOB_SUFFIXES = ['er', 'or', 'ist', 'ian', 'ant', 'ent', 'man', 'woman', 'officer', 'specialist', 'analyst', 'manager', 'director', 'lead', 'head', 'chief', 'worker', 'driver', 'operator', 'agent', 'designer', 'developer', 'engineer', 'consultant', 'advisor', 'expert'];
+
+        // Function to Validate if String is a Real Job
+        function validateJobTitle(input) {
+            const clean = input.trim().toLowerCase();
+            if (!clean || clean.length < 3) return false;
+
+            // Reject single numbers or nonsense non-alphabetics
+            if (/^\d+$/.test(clean) || /^[^a-zA-Z\s]+$/.test(clean)) return false;
+
+            // Known job list exact/substring match
+            const matchedKnown = KNOWN_JOB_TITLES.some(j => clean.includes(j) || j.includes(clean));
+            if (matchedKnown) return true;
+
+            // Check job suffix patterns (e.g., "Game Tester", "Cybersecurity Specialist")
+            const words = clean.split(/\s+/);
+            const hasJobSuffix = words.some(w => JOB_SUFFIXES.some(suf => w.endsWith(suf)));
+            if (hasJobSuffix) return true;
+
+            // Common non-job words filter
+            const nonJobs = ['apple', 'banana', 'cat', 'dog', 'table', 'chair', 'car', 'house', 'shoe', 'asdf', 'qwerty', 'thing', 'stuff', 'sad', 'happy', 'food', 'water', 'phone', 'computer', 'pencil', 'paper', 'pizza', 'burger', 'hello', 'test', 'nothing'];
+            if (nonJobs.includes(clean)) return false;
+
+            return false;
+        }
+
+        // Customer Database with Requests per Job
+        const CUSTOMER_REQUESTS = {
             'Software Developer': [
-                { text: "Spent $20 on cloud server hosting & wrote database query optimization code.", cost: 20, payout: 60 },
-                { text: "Spent $35 on API licenses & integrated third-party payment gateway for app.", cost: 35, payout: 105 },
-                { text: "Spent $50 on security audit tools & patched critical vulnerability in authentication logic.", cost: 50, payout: 150 }
+                { name: "TechCorp CEO", icon: "fa-user-tie", request: "Our payment API broke during peak sales! Please patch the webhook integration immediately.", payout: 85, badge: "VIP Client" },
+                { name: "Indie Studio", icon: "fa-gamepad", request: "We have a memory leak in player inventory physics. Fix the data array algorithm.", payout: 65, badge: "Client" },
+                { name: "Startup Founder", icon: "fa-lightbulb", request: "Help us deploy a reactive customer dashboard with secure OAuth authentication.", payout: 75, badge: "Urgent" }
             ],
             'Doctor': [
-                { text: "Spent $15 on diagnostic test kits & treated patient presenting with severe fever.", cost: 15, payout: 50 },
-                { text: "Spent $30 on surgical sterile equipment & performed emergency appendectomy.", cost: 30, payout: 95 },
-                { text: "Spent $45 on specialized medication & stabilized ICU patient vitals.", cost: 45, payout: 140 }
+                { name: "Mr. Henderson", icon: "fa-user-injured", request: "Doctor, I have high blood pressure and chest fever. Please prescribe medication.", payout: 90, badge: "Patient" },
+                { name: "Elena Vance", icon: "fa-hospital-user", request: "My daughter injured her wrist during basketball practice. Need X-ray inspection.", payout: 70, badge: "Emergency" },
+                { name: "Arthur Pendelton", icon: "fa-wheelchair", request: "I need a post-surgery recovery checkup and mobility progress report.", payout: 80, badge: "Regular" }
             ],
             'Barista / Cafe Associate': [
-                { text: "Spent $8 on fresh espresso beans & crafted 5 caramel macchiatos for morning rush.", cost: 8, payout: 25 },
-                { text: "Spent $12 on oat milk & organic syrups to prepare custom iced tea beverages.", cost: 12, payout: 38 },
-                { text: "Spent $20 on bakery supplies & baked fresh chocolate croissants for shop display.", cost: 20, payout: 60 }
+                { name: "Morning Commuter", icon: "fa-user-clock", request: "Can I get an iced double oat milk latte with two pumps of vanilla syrup please?", payout: 25, badge: "In a Rush" },
+                { name: "College Student", icon: "fa-graduation-cap", request: "I'm studying for finals! Large dark roast coffee with almond milk and a croissant.", payout: 30, badge: "Regular" },
+                { name: "Local Artist", icon: "fa-palette", request: "I would love a hot matcha latte with intricate foam leaf artwork on top.", payout: 35, badge: "VIP" }
             ],
             'Corporate Attorney / Lawyer': [
-                { text: "Spent $40 on court filing fees & drafted non-disclosure agreements for client.", cost: 40, payout: 130 },
-                { text: "Spent $60 on legal research databases & negotiated settlement agreement in mediation.", cost: 60, payout: 195 },
-                { text: "Spent $80 on expert witness retainers & successfully defended client in arbitration.", cost: 80, payout: 260 }
+                { name: "Venture Partner", icon: "fa-briefcase", request: "We are acquiring a tech startup. Review the non-disclosure terms and contract clause.", payout: 150, badge: "Corporate" },
+                { name: "Business Owner", icon: "fa-building", request: "Draft a defense motion against a trademark infringement lawsuit filed yesterday.", payout: 130, badge: "Urgent" }
             ],
             'Default': [
-                { text: "Spent $15 on operational materials & completed inventory management report.", cost: 15, payout: 45 },
-                { text: "Spent $25 on software tools & finalized quarterly roadmap presentation.", cost: 25, payout: 75 },
-                { text: "Spent $40 on client logistics & coordinated cross-department project delivery.", cost: 40, payout: 120 }
+                { name: "Customer Alex", icon: "fa-user", request: "Hello! I need help processing my request and finalizing today's service transaction.", payout: 45, badge: "Customer" },
+                { name: "Client Taylor", icon: "fa-user-check", request: "Please assist me with reviewing my account statement and scheduling delivery.", payout: 50, badge: "Client" },
+                { name: "Patron Sam", icon: "fa-circle-user", request: "I have a quick question about service options and need your expert recommendation.", payout: 40, badge: "Regular" }
             ]
         };
 
-        // Preset Job Catalog Across 4 Tiers
+        // Preset Job Catalog
         const PRESET_JOBS = [
-            // Tier 1
-            { title: 'Barista / Cafe Associate', tier: 'Entry Level', tierNum: 1, cost: 50, baseSalary: 10, icon: 'fa-mug-hot', desc: 'Brew coffee, serve baked goods, and chat with local patrons.' },
-            { title: 'Cashier & Customer Service', tier: 'Entry Level', tierNum: 1, cost: 50, baseSalary: 10, icon: 'fa-store', desc: 'Process customer transactions and manage checkout lanes.' },
-            { title: 'Delivery Driver', tier: 'Entry Level', tierNum: 1, cost: 50, baseSalary: 11, icon: 'fa-truck-fast', desc: 'Deliver packages across the city in a timely manner.' },
+            { title: 'Barista / Cafe Associate', tier: 'Entry Level', tierNum: 1, cost: 50, baseSalary: 10, icon: 'fa-mug-hot', desc: 'Serve coffee & baked goods to eager morning patrons.' },
+            { title: 'Cashier & Customer Service', tier: 'Entry Level', tierNum: 1, cost: 50, baseSalary: 10, icon: 'fa-store', desc: 'Assist store customers with checkout and inquiries.' },
+            { title: 'Delivery Driver', tier: 'Entry Level', tierNum: 1, cost: 50, baseSalary: 11, icon: 'fa-truck-fast', desc: 'Deliver packages directly to waiting clients.' },
             
-            // Tier 2 (Requires Prestige 1+)
-            { title: 'Software Developer', tier: 'Mid Level', tierNum: 2, cost: 150, baseSalary: 18, icon: 'fa-code', desc: 'Write clean, reactive code and build modern applications.' },
-            { title: 'Registered Nurse', tier: 'Mid Level', tierNum: 2, cost: 150, baseSalary: 16, icon: 'fa-user-nurse', desc: 'Care for patients, monitor health vitals, and assist doctors.' },
-            { title: 'Graphic Designer', tier: 'Mid Level', tierNum: 2, cost: 150, baseSalary: 15, icon: 'fa-palette', desc: 'Create visuals, wireframes, and brand identity graphics.' },
+            { title: 'Software Developer', tier: 'Mid Level', tierNum: 2, cost: 150, baseSalary: 18, icon: 'fa-code', desc: 'Build software solutions for corporate and startup clients.' },
+            { title: 'Registered Nurse', tier: 'Mid Level', tierNum: 2, cost: 150, baseSalary: 16, icon: 'fa-user-nurse', desc: 'Care for patients in hospital emergency rooms.' },
+            { title: 'Graphic Designer', tier: 'Mid Level', tierNum: 2, cost: 150, baseSalary: 15, icon: 'fa-palette', desc: 'Design brand visual assets for requesting clients.' },
 
-            // Tier 3 (Requires Prestige 2+)
-            { title: 'Data Scientist & AI Specialist', tier: 'Senior Level', tierNum: 3, cost: 300, baseSalary: 28, icon: 'fa-brain', desc: 'Train predictive models and analyze complex datasets.' },
-            { title: 'Corporate Attorney / Lawyer', tier: 'Senior Level', tierNum: 3, cost: 300, baseSalary: 32, icon: 'fa-scale-balanced', desc: 'Draft legal contracts and defend high-profile corporate clients.' },
-            { title: 'Architectural Engineer', tier: 'Senior Level', tierNum: 3, cost: 300, baseSalary: 30, icon: 'fa-compass-drafting', desc: 'Design structural blueprints for skyscrapers and public works.' },
+            { title: 'Data Scientist & AI Specialist', tier: 'Senior Level', tierNum: 3, cost: 300, baseSalary: 28, icon: 'fa-brain', desc: 'Analyze data models for high-value enterprise clients.' },
+            { title: 'Corporate Attorney / Lawyer', tier: 'Senior Level', tierNum: 3, cost: 300, baseSalary: 32, icon: 'fa-scale-balanced', desc: 'Represent clients in court arbitration and litigation.' },
+            { title: 'Architectural Engineer', tier: 'Senior Level', tierNum: 3, cost: 300, baseSalary: 30, icon: 'fa-compass-drafting', desc: 'Draft skyscraper blueprints for property developers.' },
 
-            // Tier 4 (Requires Prestige 3+)
-            { title: 'Chief Executive Officer (CEO)', tier: 'Executive', tierNum: 4, cost: 500, baseSalary: 55, icon: 'fa-crown', desc: 'Lead corporate strategy, manage investments, and drive growth.' },
-            { title: 'Commercial Airline Pilot', tier: 'Executive', tierNum: 4, cost: 500, baseSalary: 45, icon: 'fa-plane', desc: 'Fly international routes safely for major commercial airlines.' },
-            { title: 'Neurosurgeon Specialist', tier: 'Executive', tierNum: 4, cost: 500, baseSalary: 60, icon: 'fa-hospital', desc: 'Perform delicate neurosurgical operations and save lives.' }
+            { title: 'Chief Executive Officer (CEO)', tier: 'Executive', tierNum: 4, cost: 500, baseSalary: 55, icon: 'fa-crown', desc: 'Direct corporate strategy and consult key board investors.' },
+            { title: 'Commercial Airline Pilot', tier: 'Executive', tierNum: 4, cost: 500, baseSalary: 45, icon: 'fa-plane', desc: 'Fly passengers safely to international flight destinations.' },
+            { title: 'Neurosurgeon Specialist', tier: 'Executive', tierNum: 4, cost: 500, baseSalary: 60, icon: 'fa-hospital', desc: 'Perform surgeries on patients needing specialized care.' }
         ];
 
         // Web Audio Synthesizer Sound Engine
@@ -481,8 +569,8 @@
 
                 const now = audioCtx.currentTime;
                 if (type === 'click' || type === 'type') {
-                    osc.frequency.setValueAtTime(type === 'type' ? 600 : 400, now);
-                    osc.frequency.exponentialRampToValueAtTime(200, now + 0.03);
+                    osc.frequency.setValueAtTime(type === 'type' ? 650 : 400, now);
+                    osc.frequency.exponentialRampToValueAtTime(220, now + 0.03);
                     gain.gain.setValueAtTime(0.05, now);
                     gain.gain.linearRampToValueAtTime(0, now + 0.03);
                     osc.start(now);
@@ -498,8 +586,8 @@
                     osc.stop(now + 0.35);
                 } else if (type === 'fail') {
                     osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(250, now);
-                    osc.frequency.exponentialRampToValueAtTime(100, now + 0.25);
+                    osc.frequency.setValueAtTime(280, now);
+                    osc.frequency.exponentialRampToValueAtTime(90, now + 0.25);
                     gain.gain.setValueAtTime(0.2, now);
                     gain.gain.linearRampToValueAtTime(0, now + 0.25);
                     osc.start(now);
@@ -590,6 +678,58 @@
             });
         }
 
+        // Real-time Input Validator for Custom Job
+        const customJobInput = document.getElementById('custom-job-input');
+        const customJobError = document.getElementById('custom-job-error');
+
+        customJobInput.addEventListener('input', () => {
+            const text = customJobInput.value.trim();
+            if (!text) {
+                customJobError.classList.add('hidden');
+                customJobInput.classList.remove('border-rose-500', 'focus:ring-rose-500');
+                return;
+            }
+
+            const isValid = validateJobTitle(text);
+            if (!isValid) {
+                customJobError.classList.remove('hidden');
+                customJobInput.classList.add('border-rose-500');
+                customJobInput.classList.remove('focus:ring-cyan-500');
+            } else {
+                customJobError.classList.add('hidden');
+                customJobInput.classList.remove('border-rose-500');
+                customJobInput.classList.add('focus:ring-cyan-500');
+            }
+        });
+
+        // Apply Custom Job Button Handler
+        document.getElementById('btn-apply-custom').addEventListener('click', () => {
+            const inputVal = customJobInput.value.trim();
+
+            if (!inputVal) {
+                customJobError.querySelector('span').textContent = "Please type a job title first!";
+                customJobError.classList.remove('hidden');
+                playSfx('fail');
+                return;
+            }
+
+            const isValid = validateJobTitle(inputVal);
+
+            if (!isValid) {
+                playSfx('fail');
+                customJobError.querySelector('span').textContent = "This is not a job! Please enter a recognized career or profession.";
+                customJobError.classList.remove('hidden');
+                customJobInput.classList.add('border-rose-500');
+                return;
+            }
+
+            // Valid Job Entered!
+            customJobError.classList.add('hidden');
+            customJobInput.classList.remove('border-rose-500');
+            const info = estimateCustomJob(inputVal);
+            startInterview(inputVal, info.cost, info.tier, info.icon, info.baseSalary, info.tierNum);
+        });
+
         // Start Multi-Question Interview
         function startInterview(title, cost, tier, icon, baseSalary, tierNum) {
             if (state.cash < cost) {
@@ -613,8 +753,7 @@
             chat.innerHTML = '';
             showView('interview');
 
-            // Initial Q1 Greeting
-            appendChatMessage('interviewer', `Hello! Welcome to your interview for the **${title}** position.\n\n**Question 1:** Why are you passionate about working as a ${title}, and why do you want this job?`);
+            appendChatMessage('interviewer', `Hello! Welcome to your interview for the **${title}** position.\n\n**Question 1:** Why are you passionate about working as a ${title}, and how do you plan to handle customer/client requests?`);
         }
 
         function appendChatMessage(sender, text) {
@@ -637,36 +776,13 @@
             chat.scrollTop = chat.scrollHeight;
         }
 
-        // Interview Evaluation Function via Gemini or Local Fallback
+        // Evaluate Answer Logic
         async function evaluateAnswer(jobTitle, step, userText) {
-            try {
-                const systemPrompt = `You are a strict AI Hiring Manager for a ${jobTitle} position. Evaluate candidate answer for step ${step}.
-If short, lazy (e.g. "idk", 1-3 words), or rude -> Verdict = BAD.
-If thought out and clear -> Verdict = GOOD.
-Respond ONLY with JSON: { "verdict": "GOOD" or "BAD", "feedback": "1-2 sentences of feedback" }`;
-
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${state.apiKey}`;
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: `Answer: ${userText}` }] }],
-                        systemInstruction: { parts: [{ text: systemPrompt }] },
-                        generationConfig: { responseMimeType: "application/json" }
-                    })
-                });
-
-                if (!response.ok) throw new Error("API Offline");
-                const res = await response.json();
-                return JSON.parse(res.candidates[0].content.parts[0].text);
-            } catch (err) {
-                // Smart Local Engine Fallback
-                const words = userText.trim().split(/\s+/).length;
-                if (words < 5 || userText.toLowerCase().includes("idk")) {
-                    return { verdict: "BAD", feedback: "Your response lacked depth and professional motivation." };
-                }
-                return { verdict: "GOOD", feedback: "Strong answer demonstrating solid intent and capability." };
+            const words = userText.trim().split(/\s+/).length;
+            if (words < 4 || userText.toLowerCase().includes("idk") || userText.toLowerCase().includes("whatever")) {
+                return { verdict: "BAD", feedback: "Your response lacked motivation and customer dedication." };
             }
+            return { verdict: "GOOD", feedback: "Impressive answer! Demonstrates great customer care and expertise." };
         }
 
         // Interview Form Submit
@@ -693,9 +809,8 @@ Respond ONLY with JSON: { "verdict": "GOOD" or "BAD", "feedback": "1-2 sentences
             if (state.interviewStep === 1) {
                 state.interviewStep = 2;
                 document.getElementById('interview-q-step').textContent = '2';
-                appendChatMessage('interviewer', ` Great answer! Now for **Question 2:** Why do you deserve to earn this position over other candidates? What value will you bring?`);
+                appendChatMessage('interviewer', ` Great answer! Now for **Question 2:** How do you ensure high customer satisfaction when dealing with a demanding client?`);
             } else {
-                // Final Success Hired!
                 playSfx('success');
                 state.currentJob = state.interviewJob;
                 state.jobsHeldCount++;
@@ -705,7 +820,7 @@ Respond ONLY with JSON: { "verdict": "GOOD" or "BAD", "feedback": "1-2 sentences
                 updateHud();
 
                 confetti({ particleCount: 70, spread: 60 });
-                appendChatMessage('interviewer', `🎉 **YOU ARE HIRED!**\n\n${evalRes.feedback}\n\nClick below to start your shift work!`);
+                appendChatMessage('interviewer', `🎉 **YOU ARE HIRED!**\n\n${evalRes.feedback}\n\nOpening customer waiting room now! Get ready to assist your first client.`);
 
                 setTimeout(() => {
                     startWorkplaceShift();
@@ -713,42 +828,45 @@ Respond ONLY with JSON: { "verdict": "GOOD" or "BAD", "feedback": "1-2 sentences
             }
         });
 
-        // Start Workplace Shift
+        // Start Customer Service Shift
         function startWorkplaceShift() {
             document.getElementById('work-job-title').textContent = state.currentJob.title;
+            state.customersServed = 0;
             state.shiftHoursWorked = 0;
-            state.taskCount = 1;
-            state.totalTypedChars = 0;
-            state.errorCount = 0;
+            state.customerQueueCount = Math.floor(Math.random() * 3) + 3;
             state.typingStartTime = null;
-            state.taskLog = [];
 
-            document.getElementById('work-history-log').innerHTML = '<div class="text-slate-600 italic">No tasks completed yet this shift.</div>';
+            document.getElementById('work-history-log').innerHTML = '<div class="text-slate-600 italic">No customers helped yet this shift. Waiting for your first customer!</div>';
 
-            loadNextWorkPrompt();
+            loadNextCustomer();
             showView('workplace');
         }
 
-        function loadNextWorkPrompt() {
+        // Load Next Customer Request
+        function loadNextCustomer() {
             const jobTitle = state.currentJob.title;
-            const prompts = WORK_PROMPTS[jobTitle] || WORK_PROMPTS['Default'];
-            const taskData = prompts[(state.taskCount - 1) % prompts.length];
+            const requests = CUSTOMER_REQUESTS[jobTitle] || CUSTOMER_REQUESTS['Default'];
+            const customer = requests[state.customersServed % requests.length];
 
-            state.currentPromptText = taskData.text;
-            state.currentTaskCost = taskData.cost;
-            state.currentTaskPayout = taskData.payout;
+            state.currentCustomer = customer;
+            state.currentPromptText = customer.request;
+            state.currentTaskPayout = customer.payout;
+            state.typingStartTime = null;
 
-            document.getElementById('work-target-text').textContent = state.currentPromptText;
+            document.getElementById('customer-name').textContent = `${customer.name}`;
+            document.getElementById('customer-badge-type').textContent = customer.badge;
+            document.getElementById('customer-dialogue').textContent = `"${customer.request}"`;
+            document.getElementById('customer-avatar-icon').className = `fa-solid ${customer.icon}`;
+            document.getElementById('customer-payout-text').textContent = `+$${customer.payout.toFixed(2)}`;
+
+            document.getElementById('work-target-text').textContent = customer.request;
             document.getElementById('work-typing-input').value = '';
-            document.getElementById('task-stage-badge').textContent = `Task #${state.taskCount}`;
-            document.getElementById('task-cost-badge').textContent = `Cost: -$${state.currentTaskCost}`;
-            document.getElementById('stat-task-cost').textContent = `-$${state.currentTaskCost}`;
-            document.getElementById('stat-task-payout').textContent = `+$${state.currentTaskPayout}`;
+            document.getElementById('queue-badge').textContent = `${state.customerQueueCount} Waiting`;
+            document.getElementById('stat-customers-count').textContent = state.customersServed;
             document.getElementById('work-typing-progress').textContent = `0% Completed`;
 
-            // Check if user has enough cash for task cost
             const loanBtn = document.getElementById('btn-emergency-loan');
-            if (state.cash < state.currentTaskCost) {
+            if (state.cash < 20) {
                 loanBtn.classList.remove('hidden');
             } else {
                 loanBtn.classList.add('hidden');
@@ -763,7 +881,7 @@ Respond ONLY with JSON: { "verdict": "GOOD" or "BAD", "feedback": "1-2 sentences
             document.getElementById('btn-emergency-loan').classList.add('hidden');
         });
 
-        // Typing Listener for On-The-Job Tasks (Spends money & logs what you do)
+        // Typing Listener for Helping Customers
         document.getElementById('work-typing-input').addEventListener('input', (e) => {
             playSfx('type');
             if (!state.typingStartTime) state.typingStartTime = Date.now();
@@ -771,7 +889,6 @@ Respond ONLY with JSON: { "verdict": "GOOD" or "BAD", "feedback": "1-2 sentences
             const typed = e.target.value;
             const target = state.currentPromptText;
 
-            // Calculate Progress & Accuracy
             const progress = Math.min(100, Math.floor((typed.length / target.length) * 100));
             document.getElementById('work-typing-progress').textContent = `${progress}% Completed`;
 
@@ -784,74 +901,67 @@ Respond ONLY with JSON: { "verdict": "GOOD" or "BAD", "feedback": "1-2 sentences
             const elapsedMins = (Date.now() - state.typingStartTime) / 60000;
             const wpm = elapsedMins > 0 ? Math.floor((typed.length / 5) / elapsedMins) : 0;
 
-            const wpmEl = document.getElementById('stat-shift-wpm');
-            if (wpmEl) wpmEl.textContent = `${wpm} WPM`;
+            document.getElementById('stat-shift-wpm').textContent = `${wpm} WPM`;
 
-            const accEl = document.getElementById('stat-shift-accuracy');
-            if (accEl) accEl.textContent = `${accuracy}%`;
-
-            // Performance Rate Check ($10+/hr if good, $5/hr if poor)
-            const perfEl = document.getElementById('stat-shift-performance');
-            if (wpm >= 20 && accuracy >= 88) {
-                state.currentPayRate = state.currentJob ? state.currentJob.baseSalary : 10;
-                if (perfEl) {
-                    perfEl.textContent = `Good ($${state.currentPayRate.toFixed(2)}/hr)`;
-                    perfEl.className = 'text-xs font-bold text-emerald-400 mt-1';
-                }
+            // Calculate Tip based on Speed and Accuracy
+            let tip = 5.00;
+            if (wpm >= 25 && accuracy >= 90) {
+                tip = 15.00;
+                document.getElementById('stat-customer-patience').textContent = "100% Pleased";
+                document.getElementById('stat-customer-patience').className = "text-xs font-bold text-emerald-400 mt-1";
             } else {
-                state.currentPayRate = 5.00;
-                if (perfEl) {
-                    perfEl.textContent = `Low ($5.00/hr)`;
-                    perfEl.className = 'text-xs font-bold text-rose-400 mt-1';
-                }
+                tip = 3.00;
+                document.getElementById('stat-customer-patience').textContent = "Patient";
+                document.getElementById('stat-customer-patience').className = "text-xs font-bold text-amber-400 mt-1";
             }
 
-            // Completed Target Prompt
+            document.getElementById('stat-customer-tip').textContent = `+$${tip.toFixed(2)}`;
+
+            // Completed Helping Customer!
             if (typed === target) {
                 playSfx('success');
 
-                const wageEarned = state.currentPayRate * 4; // 4 hours shift per task
-                const netProfit = state.currentTaskPayout - state.currentTaskCost;
-                const totalNetEarned = netProfit + wageEarned;
+                const totalEarned = state.currentTaskPayout + tip;
+                state.cash += totalEarned;
+                state.totalEarnings += totalEarned;
+                state.customersServed++;
+                state.shiftHoursWorked += 2;
+                state.customerQueueCount = Math.max(1, state.customerQueueCount + Math.floor(Math.random() * 2) - 1);
 
-                state.cash = Math.max(0, state.cash + totalNetEarned);
-                state.totalEarnings += Math.max(0, totalNetEarned);
-                state.shiftHoursWorked += 4;
-
-                // Advance Age slightly (every 200 shift hours = +1 Year)
-                if (state.shiftHoursWorked % 12 === 0) {
+                // Advance Age slightly (every 20 customers served = +1 Year)
+                if (state.customersServed % 10 === 0) {
                     state.age++;
                 }
 
                 updateHud();
 
-                // Append to shift log history
+                // Append to Customer History Log
                 const logContainer = document.getElementById('work-history-log');
-                if (state.taskCount === 1) logContainer.innerHTML = '';
+                if (state.customersServed === 1) logContainer.innerHTML = '';
                 
                 const logItem = document.createElement('div');
-                logItem.className = 'flex justify-between items-center bg-slate-900/80 p-2 rounded border border-slate-800 text-slate-300';
+                logItem.className = 'flex justify-between items-center bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 text-slate-300';
                 logItem.innerHTML = `
-                    <span><i class="fa-solid fa-check text-emerald-400 mr-1.5"></i> ${target}</span>
-                    <span class="text-emerald-400 font-bold ml-2 font-mono">+$${totalNetEarned.toFixed(0)}</span>
+                    <span class="flex items-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                        <span>Helped <strong>${state.currentCustomer.name}</strong></span>
+                    </span>
+                    <span class="text-emerald-400 font-bold font-mono">+$${totalEarned.toFixed(2)}</span>
                 `;
                 logContainer.prepend(logItem);
 
                 document.getElementById('stat-shift-hours').textContent = `${state.shiftHoursWorked} hrs`;
-                document.getElementById('work-pay-rate-badge').textContent = `Rate: $${state.currentPayRate.toFixed(2)} / hr`;
 
-                // Load Next Task Prompt
-                state.taskCount++;
-                loadNextWorkPrompt();
+                // Load Next Customer
+                loadNextCustomer();
             }
         });
 
         // Retire Job Handler
         document.getElementById('btn-retire-job').addEventListener('click', () => {
-            if (!confirm("Retire from your current job? Doing well boosts your Prestige Level and unlocks higher tier job options!")) return;
+            if (!confirm("Retire from your current job? Serving many customers boosts your Prestige Level and unlocks top tier jobs!")) return;
 
             playSfx('success');
-            // Prestige Level Up
             state.prestige = Math.min(4, state.prestige + 1);
             state.currentJob = null;
             updateHud();
@@ -859,15 +969,6 @@ Respond ONLY with JSON: { "verdict": "GOOD" or "BAD", "feedback": "1-2 sentences
             document.getElementById('retire-notice').classList.remove('hidden');
             renderPresetJobs();
             showView('job-select');
-        });
-
-        // Custom Job Form Apply
-        document.getElementById('btn-apply-custom').addEventListener('click', () => {
-            const input = document.getElementById('custom-job-input').value.trim();
-            if (!input) return alert("Type a custom job title first!");
-
-            const info = estimateCustomJob(input);
-            startInterview(input, info.cost, info.tier, info.icon, info.baseSalary, info.tierNum);
         });
 
         // Withdraw Application
