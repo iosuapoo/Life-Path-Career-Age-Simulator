@@ -373,7 +373,7 @@
                     </div>
 
                     <div class="flex flex-col sm:flex-row gap-2">
-                        <textarea id="work-typing-input" rows="3" placeholder="Type any response to answer the customer request and press Enter..."
+                        <textarea id="work-typing-input" rows="3" placeholder="Type a detailed, helpful response to answer the customer request and press Enter..."
                             class="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-slate-100 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none transition flex-1"></textarea>
                         
                         <button id="btn-submit-customer-task" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold px-5 py-3 rounded-xl shadow-lg shadow-emerald-500/20 flex flex-col sm:flex-row items-center justify-center gap-2 transition active:scale-95 text-xs sm:text-sm sm:w-auto w-full">
@@ -397,13 +397,13 @@
                     </div>
 
                     <div class="flex flex-wrap justify-between items-center gap-2">
-                        <p id="typing-instruction-hint" class="text-xs text-slate-400 flex items-center gap-1">
-                            <i class="fa-solid fa-circle-info text-cyan-400"></i>
-                            <span>Press <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono border border-slate-700">Enter</kbd> or click Submit to finish and collect payment.</span>
+                        <p id="typing-instruction-hint" class="text-xs text-amber-400 flex items-center gap-1 font-medium">
+                            <i class="fa-solid fa-pen-nib text-amber-400"></i>
+                            <span>Write a decent response (at least 15+ characters / 3+ words) to satisfy the customer and get paid!</span>
                         </p>
                         <p id="typing-error-notice" class="text-xs text-rose-400 font-bold hidden flex items-center gap-1">
                             <i class="fa-solid fa-triangle-exclamation"></i>
-                            <span id="typing-error-msg">Please complete typing the full text before submitting!</span>
+                            <span id="typing-error-msg">Please write a decent response before submitting!</span>
                         </p>
                     </div>
                 </div>
@@ -1022,10 +1022,11 @@
                 playSfx('type');
                 if (!state.typingStartTime) state.typingStartTime = Date.now();
 
-                const typed = e.target.value;
+                const typed = e.target.value.trim();
+                const wordCount = typed ? typed.split(/\s+/).length : 0;
 
-                const progress = typed.length > 0 ? 100 : 0;
-                document.getElementById('work-typing-progress').textContent = `${progress}% Completed`;
+                const progress = Math.min(100, Math.floor((typed.length / 20) * 100));
+                document.getElementById('work-typing-progress').textContent = `${progress}% Decent Quality (${wordCount} words)`;
 
                 state.errorCount = 0;
 
@@ -1036,8 +1037,13 @@
 
                 const accuracyEl = document.getElementById('stat-writing-accuracy');
                 if (accuracyEl) {
-                    accuracyEl.textContent = `100% Perfect`;
-                    accuracyEl.className = 'text-xs font-bold text-emerald-400 mt-1';
+                    if (typed.length >= 15 && wordCount >= 3) {
+                        accuracyEl.textContent = `Decent & Valid`;
+                        accuracyEl.className = 'text-xs font-bold text-emerald-400 mt-1';
+                    } else {
+                        accuracyEl.textContent = `Too Short`;
+                        accuracyEl.className = 'text-xs font-bold text-amber-400 mt-1';
+                    }
                 }
             });
 
@@ -1061,26 +1067,35 @@
             const inputEl = document.getElementById('work-typing-input');
             if (!inputEl) return;
             const typed = inputEl.value.trim();
+            const wordCount = typed ? typed.split(/\s+/).length : 0;
             const errNotice = document.getElementById('typing-error-notice');
 
-            if (!typed) {
+            // Require at least 15 characters and at least 3 words for a decent response
+            if (!typed || typed.length < 15 || wordCount < 3) {
                 if (errNotice) {
                     errNotice.classList.remove('hidden');
-                    document.getElementById('typing-error-msg').textContent = "Please enter a response before submitting!";
-                    setTimeout(() => errNotice.classList.add('hidden'), 3500);
+                    document.getElementById('typing-error-msg').textContent = "Customer rejected response: 'This response is too short! Please write a decent, helpful sentence to get paid.'";
+                    setTimeout(() => errNotice.classList.add('hidden'), 4500);
                 }
+                
+                // Small penalty for poor effort
+                state.rating = Math.max(1.0, state.rating - 0.1);
+                document.getElementById('stat-shift-rating').textContent = `${state.rating.toFixed(1)} ⭐`;
+                showPerformanceToast(false, "Customer Unsatisfied! Response too short or vague.", "-0.1 ⭐ Rating");
                 playSfx('fail');
                 return;
             }
 
             if (errNotice) errNotice.classList.add('hidden');
 
-            let perfDelta = Math.round(state.currentTaskPayout * 0.5) + 15;
+            // Calculate bonus based on response detail
+            let detailBonus = Math.min(25, Math.floor(typed.length / 3));
+            let perfDelta = Math.round(state.currentTaskPayout * 0.5) + detailBonus;
             let payRateChange = 0.50;
             let ratingChange = 0.2;
 
             playSfx('success');
-            showPerformanceToast(true, "EXCELLENT SERVICE! Response submitted and full payment collected!", `+${perfDelta.toFixed(2)} Bonus`);
+            showPerformanceToast(true, `EXCELLENT RESPONSE! Customer satisfied and paid in full!`, `+$${(state.currentTaskPayout + perfDelta).toFixed(2)} Earned`);
 
             state.performanceMoney += perfDelta;
             state.currentPayRate = Math.max(5.00, state.currentPayRate + payRateChange);
@@ -1117,7 +1132,7 @@
                 logItem.innerHTML = `
                     <span class="flex items-center gap-2">
                         <i class="fa-solid fa-circle-check text-emerald-400"></i>
-                        <span>Helped <strong>${state.currentCustomer.name}</strong> (100% accuracy)</span>
+                        <span>Helped <strong>${state.currentCustomer.name}</strong> (${wordCount} words)</span>
                     </span>
                     <span class="text-emerald-400 font-bold font-mono">+$${totalEarned.toFixed(2)}</span>
                 `;
