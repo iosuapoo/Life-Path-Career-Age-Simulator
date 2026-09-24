@@ -268,7 +268,7 @@
                             Rate: $10.00 / hr
                         </span>
                     </div>
-                    <p class="text-xs text-slate-400 mt-1">Customers & Clients are arriving! Type out their exact request to assist them and earn wages, tips & bonuses!</p>
+                    <p class="text-xs text-slate-400 mt-1">Type client requests accurately! Good writing raises your performance money and pay rate, while mistakes lower them.</p>
                 </div>
 
                 <div class="flex items-center gap-3">
@@ -297,17 +297,23 @@
                     <div id="stat-shift-wpm" class="text-lg font-bold font-mono text-emerald-400">0 WPM</div>
                 </div>
                 <div class="glass-panel p-3 rounded-xl border border-slate-800 text-center">
-                    <div class="text-[10px] uppercase font-semibold text-slate-400">Service Rating</div>
+                    <div class="text-[10px] uppercase font-semibold text-slate-400">Performance Rating</div>
                     <div id="stat-shift-rating" class="text-lg font-bold font-mono text-amber-400">5.0 ⭐</div>
                 </div>
                 <div class="glass-panel p-3 rounded-xl border border-slate-800 text-center">
-                    <div class="text-[10px] uppercase font-semibold text-slate-400">Patience Level</div>
-                    <div id="stat-customer-patience" class="text-xs font-bold text-emerald-400 mt-1">100% High</div>
+                    <div class="text-[10px] uppercase font-semibold text-slate-400">Writing Accuracy</div>
+                    <div id="stat-writing-accuracy" class="text-xs font-bold text-emerald-400 mt-1">100% Perfect</div>
                 </div>
                 <div class="glass-panel p-3 rounded-xl border border-slate-800 text-center">
-                    <div class="text-[10px] uppercase font-semibold text-slate-400">Expected Tip</div>
-                    <div id="stat-customer-tip" class="text-lg font-bold font-mono text-emerald-400">+$15.00</div>
+                    <div class="text-[10px] uppercase font-semibold text-slate-400">Performance Money</div>
+                    <div id="stat-performance-money" class="text-lg font-bold font-mono text-emerald-400">+$0.00</div>
                 </div>
+            </div>
+
+            <!-- Live Performance Feedback Toast Notification -->
+            <div id="performance-feedback-toast" class="hidden p-3 rounded-xl border text-xs font-bold flex items-center justify-between transition-all duration-300">
+                <span id="toast-message" class="flex items-center gap-2"></span>
+                <span id="toast-amount" class="font-mono text-sm font-extrabold"></span>
             </div>
 
             <!-- Customer Service Waiting Room & Active Customer Interaction -->
@@ -453,6 +459,7 @@
             errorCount: 0,
             currentPayRate: 10,
             rating: 5.0,
+            performanceMoney: 0,
             patience: 100
         };
 
@@ -830,7 +837,14 @@
 
         // Start Customer Service Shift
         function startWorkplaceShift() {
+            state.currentPayRate = state.currentJob.baseSalary || 10;
+            state.rating = 5.0;
+            state.performanceMoney = 0;
             document.getElementById('work-job-title').textContent = state.currentJob.title;
+            document.getElementById('work-pay-rate-badge').textContent = `Rate: $${state.currentPayRate.toFixed(2)} / hr`;
+            document.getElementById('stat-performance-money').textContent = `$0.00`;
+            document.getElementById('stat-shift-rating').textContent = `${state.rating.toFixed(1)} ⭐`;
+            
             state.customersServed = 0;
             state.shiftHoursWorked = 0;
             state.customerQueueCount = Math.floor(Math.random() * 3) + 3;
@@ -852,6 +866,7 @@
             state.currentPromptText = customer.request;
             state.currentTaskPayout = customer.payout;
             state.typingStartTime = null;
+            state.errorCount = 0;
 
             document.getElementById('customer-name').textContent = `${customer.name}`;
             document.getElementById('customer-badge-type').textContent = customer.badge;
@@ -873,15 +888,31 @@
             }
         }
 
-        // Emergency Loan Button Click
-        document.getElementById('btn-emergency-loan').addEventListener('click', () => {
-            playSfx('success');
-            state.cash += 50;
-            updateHud();
-            document.getElementById('btn-emergency-loan').classList.add('hidden');
-        });
+        // Display Toast Feedback for Performance Money Changes
+        function showPerformanceToast(isGood, message, amountText) {
+            const toast = document.getElementById('performance-feedback-toast');
+            const msgEl = document.getElementById('toast-message');
+            const amtEl = document.getElementById('toast-amount');
 
-        // Typing Listener for Helping Customers
+            toast.classList.remove('hidden', 'bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-400', 'bg-rose-500/10', 'border-rose-500/30', 'text-rose-400');
+            
+            if (isGood) {
+                toast.classList.add('bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-400');
+                msgEl.innerHTML = `<i class="fa-solid fa-arrow-trend-up text-base"></i> ${message}`;
+            } else {
+                toast.classList.add('bg-rose-500/10', 'border-rose-500/30', 'text-rose-400');
+                msgEl.innerHTML = `<i class="fa-solid fa-arrow-trend-down text-base"></i> ${message}`;
+            }
+
+            amtEl.textContent = amountText;
+            
+            // Auto hide toast after 4 seconds
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 4000);
+        }
+
+        // Typing Listener for Helping Customers & Evaluating Writing Quality
         document.getElementById('work-typing-input').addEventListener('input', (e) => {
             playSfx('type');
             if (!state.typingStartTime) state.typingStartTime = Date.now();
@@ -892,10 +923,12 @@
             const progress = Math.min(100, Math.floor((typed.length / target.length) * 100));
             document.getElementById('work-typing-progress').textContent = `${progress}% Completed`;
 
+            // Calculate current typing errors
             let errors = 0;
             for (let i = 0; i < typed.length; i++) {
                 if (typed[i] !== target[i]) errors++;
             }
+            state.errorCount = errors;
 
             const accuracy = typed.length > 0 ? Math.max(0, Math.floor(((typed.length - errors) / typed.length) * 100)) : 100;
             const elapsedMins = (Date.now() - state.typingStartTime) / 60000;
@@ -903,35 +936,71 @@
 
             document.getElementById('stat-shift-wpm').textContent = `${wpm} WPM`;
 
-            // Calculate Tip based on Speed and Accuracy
-            let tip = 5.00;
-            if (wpm >= 25 && accuracy >= 90) {
-                tip = 15.00;
-                document.getElementById('stat-customer-patience').textContent = "100% Pleased";
-                document.getElementById('stat-customer-patience').className = "text-xs font-bold text-emerald-400 mt-1";
-            } else {
-                tip = 3.00;
-                document.getElementById('stat-customer-patience').textContent = "Patient";
-                document.getElementById('stat-customer-patience').className = "text-xs font-bold text-amber-400 mt-1";
-            }
+            // Display Writing Accuracy
+            const accuracyEl = document.getElementById('stat-writing-accuracy');
+            accuracyEl.textContent = `${accuracy}% ${accuracy >= 90 ? 'High Quality' : accuracy >= 75 ? 'Average' : 'Poor Quality'}`;
+            accuracyEl.className = accuracy >= 90 ? 'text-xs font-bold text-emerald-400 mt-1' : accuracy >= 75 ? 'text-xs font-bold text-amber-400 mt-1' : 'text-xs font-bold text-rose-400 mt-1';
 
-            document.getElementById('stat-customer-tip').textContent = `+$${tip.toFixed(2)}`;
-
-            // Completed Helping Customer!
+            // Completed Helping Customer - Evaluate Overall Writing Performance!
             if (typed === target) {
-                playSfx('success');
+                const totalElapsedSeconds = (Date.now() - state.typingStartTime) / 1000;
+                
+                // Determine performance impact based on accuracy & typing errors
+                let perfDelta = 0;
+                let payRateChange = 0;
+                let ratingChange = 0;
+                let isGoodPerformance = false;
 
-                const totalEarned = state.currentTaskPayout + tip;
-                state.cash += totalEarned;
-                state.totalEarnings += totalEarned;
+                if (accuracy >= 92 && state.errorCount <= 2) {
+                    // Excellent Writing Performance
+                    isGoodPerformance = true;
+                    perfDelta = Math.round(state.currentTaskPayout * 0.5) + 15; // Performance Money Bonus
+                    payRateChange = 0.50; // Hourly Raise
+                    ratingChange = 0.2;
+                    playSfx('success');
+                    showPerformanceToast(true, "EXCELLENT WRITING! High accuracy earned bonus money & pay raise!", `+${perfDelta.toFixed(2)} Performance Bonus`);
+                } else if (accuracy >= 80) {
+                    // Good/Standard Writing Performance
+                    isGoodPerformance = true;
+                    perfDelta = Math.round(state.currentTaskPayout * 0.2); // Small Bonus
+                    payRateChange = 0.15;
+                    ratingChange = 0.05;
+                    playSfx('success');
+                    showPerformanceToast(true, "GOOD PERFORMANCE! Solid response quality.", `+${perfDelta.toFixed(2)} Bonus`);
+                } else {
+                    // Poor Writing / Too Many Mistakes
+                    isGoodPerformance = false;
+                    perfDelta = -Math.round(state.currentTaskPayout * 0.35); // Quality Penalty
+                    payRateChange = -0.40; // Pay Cut
+                    ratingChange = -0.3;
+                    playSfx('fail');
+                    showPerformanceToast(false, "POOR WRITING QUALITY! Mistakes lowered your performance money & pay rate.", `${perfDelta.toFixed(2)} Quality Penalty`);
+                }
+
+                // Update Performance Stats
+                state.performanceMoney += perfDelta;
+                state.currentPayRate = Math.max(5.00, state.currentPayRate + payRateChange);
+                state.rating = Math.min(5.0, Math.max(1.0, state.rating + ratingChange));
+
+                const totalEarned = Math.max(5, state.currentTaskPayout + perfDelta + state.currentPayRate);
+                state.cash = Math.max(0, state.cash + totalEarned);
+                state.totalEarnings += Math.max(0, totalEarned);
                 state.customersServed++;
                 state.shiftHoursWorked += 2;
                 state.customerQueueCount = Math.max(1, state.customerQueueCount + Math.floor(Math.random() * 2) - 1);
 
-                // Advance Age slightly (every 20 customers served = +1 Year)
+                // Advance Age slightly (every 10 customers = +1 Year)
                 if (state.customersServed % 10 === 0) {
                     state.age++;
                 }
+
+                // Update UI HUD & Stats
+                document.getElementById('work-pay-rate-badge').textContent = `Rate: $${state.currentPayRate.toFixed(2)} / hr`;
+                document.getElementById('stat-shift-rating').textContent = `${state.rating.toFixed(1)} ⭐`;
+                
+                const perfMoneyEl = document.getElementById('stat-performance-money');
+                perfMoneyEl.textContent = `${state.performanceMoney >= 0 ? '+' : ''}$${state.performanceMoney.toFixed(2)}`;
+                perfMoneyEl.className = state.performanceMoney >= 0 ? "text-lg font-bold font-mono text-emerald-400" : "text-lg font-bold font-mono text-rose-400";
 
                 updateHud();
 
@@ -943,10 +1012,10 @@
                 logItem.className = 'flex justify-between items-center bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 text-slate-300';
                 logItem.innerHTML = `
                     <span class="flex items-center gap-2">
-                        <i class="fa-solid fa-circle-check text-emerald-400"></i>
-                        <span>Helped <strong>${state.currentCustomer.name}</strong></span>
+                        <i class="fa-solid ${isGoodPerformance ? 'fa-circle-check text-emerald-400' : 'fa-triangle-exclamation text-rose-400'}"></i>
+                        <span>Helped <strong>${state.currentCustomer.name}</strong> (${accuracy}% accuracy)</span>
                     </span>
-                    <span class="text-emerald-400 font-bold font-mono">+$${totalEarned.toFixed(2)}</span>
+                    <span class="${totalEarned >= 0 ? 'text-emerald-400' : 'text-rose-400'} font-bold font-mono">${totalEarned >= 0 ? '+' : ''}$${totalEarned.toFixed(2)}</span>
                 `;
                 logContainer.prepend(logItem);
 
