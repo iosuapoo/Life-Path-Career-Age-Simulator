@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Life Path: Career & Age Simulator</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glow-green { box-shadow: 0 0 20px rgba(34, 197, 94, 0.25); }
+        .glow-red { box-shadow: 0 0 20px rgba(239, 68, 68, 0.25); }
+        .glow-blue { box-shadow: 0 0 20px rgba(59, 130, 246, 0.25); }
+        .glow-amber { box-shadow: 0 0 20px rgba(245, 158, 11, 0.25); }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }
+    </style>
+</head>
+<body class="h-full flex flex-col bg-slate-950 text-slate-100 antialiased selection:bg-emerald-500 selection:text-black">
+
+    <!-- Top HUD Navigation -->
+    <header class="w-full glass-panel border-b border-slate-800 sticky top-0 z-50 py-3 px-4 sm:px-8">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
+            <!-- Brand Logo -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-slate-950 font-bold text-xl shadow-lg shadow-emerald-500/20">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">Life Path Simulator</h1>
+                    <p class="text-xs text-slate-400">Career, Earnings & Aging Lab</p>
+                </div>
+            </div>
+
+            <!-- HUD Stats Dashboard -->
+            <div class="flex flex-wrap items-center gap-3 sm:gap-5 bg-slate-900/90 py-2 px-5 rounded-full border border-slate-800 text-xs sm:text-sm">
+                <!-- Age -->
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-xs">
+                        <i class="fa-solid fa-cake-candles"></i>
+                    </div>
+                    <div>
+                        <div class="text-[9px] uppercase tracking-wider text-slate-400 font-semibold">Age</div>
+                        <div id="hud-age" class="font-bold text-amber-400 font-mono">18 yrs</div>
+                    </div>
+                </div>
+
+                <div class="h-6 w-px bg-slate-800"></div>
+
+                <!-- Cash -->
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-xs">
+                        <i class="fa-solid fa-dollar-sign"></i>
+                    </div>
+                    <div>
+                        <div class="text-[9px] uppercase tracking-wider text-slate-400 font-semibold">Cash</div>
+                        <div id="hud-cash" class="font-bold text-emerald-400 font-mono">$1,000</div>
+                    </div>
+                </div>
+
+                <div class="h-6 w-px bg-slate-800"></div>
+
+                <!-- Job & Pay -->
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 text-xs">
+                        <i class="fa-solid fa-briefcase"></i>
+                    </div>
+                    <div>
+                        <div class="text-[9px] uppercase tracking-wider text-slate-400 font-semibold">Current Career</div>
+                        <div id="hud-job" class="font-bold text-slate-200 truncate max-w-[120px]">Unemployed</div>
+                    </div>
+                </div>
+
+                <div class="h-6 w-px bg-slate-800"></div>
+
+                <!-- Prestige Level -->
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-full bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 text-xs">
+                        <i class="fa-solid fa-medal"></i>
+                    </div>
+                    <div>
+                        <div class="text-[9px] uppercase tracking-wider text-slate-400 font-semibold">Prestige</div>
+                        <div id="hud-prestige" class="font-bold text-purple-400 font-mono">Lv. 1</div>
+                    </div>
+                </div>
+
+                <div class="h-6 w-px bg-slate-800"></div>
+
+                <!-- Controls -->
+                <div class="flex items-center gap-1.5">
+                    <button id="btn-sound" title="Toggle Sound" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
+                        <i id="icon-sound" class="fa-solid fa-volume-high text-xs"></i>
+                    </button>
+                    <button id="btn-restart" title="Restart Life" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-rose-900/40 text-slate-300 hover:text-rose-400 border border-transparent hover:border-rose-500/30 flex items-center justify-center transition">
+                        <i class="fa-solid fa-arrow-rotate-left text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main View Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col justify-center">
+
+        <!-- ================= VIEW 1: JOB CATALOG & SELECTION ================= -->
+        <section id="view-job-select" class="w-full space-y-8 max-w-5xl mx-auto">
+            <div class="text-center space-y-3">
+                <span id="tier-unlock-badge" class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-widest">
+                    Available Jobs (Prestige Level 1)
+                </span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-100 tracking-tight">Select or Type Any Career Path</h2>
+                <p class="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto">
+                    Choose a career to apply for! High performance at work unlocks higher prestige and bigger job opportunities upon retirement.
+                </p>
+            </div>
+
+            <!-- Custom Job Input -->
+            <div class="glass-panel rounded-2xl p-6 border border-slate-800 shadow-xl space-y-4 glow-blue">
+                <label for="custom-job-input" class="block text-sm font-semibold text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-cyan-400"></i>
+                    <span>Type Any Custom Career Title:</span>
+                </label>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <div class="relative flex-1">
+                        <input type="text" id="custom-job-input" placeholder="e.g. Esports Champion, Quantum Physicist, Movie Director, Stunt Driver..." 
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm">
+                        <div id="custom-cost-badge" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono font-bold bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md border border-slate-700">
+                            Est. Fee: $150
+                        </div>
+                    </div>
+                    <button id="btn-apply-custom" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold px-6 py-3.5 rounded-xl shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2 transition active:scale-95 text-sm">
+                        <span>Apply for Custom Job</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Preset Job Catalog Grid -->
+            <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-emerald-400"></i> Career Catalog
+                    </h3>
+                    <div id="retire-notice" class="text-xs text-amber-400 font-medium hidden">
+                        <i class="fa-solid fa-award"></i> You recently retired! High job choices unlocked.
+                    </div>
+                </div>
+
+                <div id="preset-jobs-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Cards rendered by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= VIEW 2: MULTI-QUESTION INTERVIEW ================= -->
+        <section id="view-interview" class="hidden w-full max-w-4xl mx-auto space-y-6">
+            <div class="glass-panel rounded-2xl p-4 sm:p-6 border border-slate-800 flex flex-wrap justify-between items-center gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-400 text-2xl shadow-inner">
+                        <i id="interview-job-icon" class="fa-solid fa-user-tie"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span id="interview-job-tier" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase">Mid Level</span>
+                            <span class="text-xs text-slate-400 font-mono" id="interview-fee-paid">Fee Paid: $150</span>
+                        </div>
+                        <h2 id="interview-job-title" class="text-xl sm:text-2xl font-bold text-white">Software Engineer</h2>
+                    </div>
+                </div>
+
+                <button id="btn-withdraw-app" class="text-xs text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-2 rounded-lg flex items-center gap-2 transition">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Withdraw Application</span>
+                </button>
+            </div>
+
+            <!-- Chat / Interview Box -->
+            <div class="glass-panel rounded-2xl border border-slate-800 overflow-hidden flex flex-col h-[520px] shadow-2xl">
+                <div class="bg-slate-900/90 border-b border-slate-800 px-4 py-3 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="relative">
+                            <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-slate-950 font-bold text-sm">
+                                AI
+                            </div>
+                            <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-slate-900 rounded-full"></span>
+                        </div>
+                        <div>
+                            <div class="text-sm font-semibold text-slate-200">Hiring Director AI</div>
+                            <div class="text-[11px] text-emerald-400 flex items-center gap-1">
+                                Question <span id="interview-q-step">1</span> of 2
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-slate-500 font-mono">Evaluation Engine</div>
+                </div>
+
+                <div id="chat-messages" class="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4"></div>
+
+                <div class="p-4 bg-slate-900/80 border-t border-slate-800 space-y-3">
+                    <form id="interview-form" class="flex gap-2">
+                        <textarea id="user-response-input" rows="2" placeholder="Type your answer here..." 
+                            class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm resize-none" required></textarea>
+                        
+                        <button type="submit" id="btn-submit-answer" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold px-5 rounded-xl shadow-lg shadow-emerald-500/20 flex flex-col items-center justify-center gap-1 transition active:scale-95 disabled:opacity-50">
+                            <i class="fa-solid fa-paper-plane text-base"></i>
+                            <span class="text-[10px] uppercase font-extrabold">Submit</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= VIEW 3: ON-THE-JOB WORKPLACE (TYPING WORK SHIFT) ================= -->
+        <section id="view-workplace" class="hidden w-full max-w-4xl mx-auto space-y-6">
+            <!-- Work Header -->
+            <div class="glass-panel rounded-2xl p-6 border border-slate-800 flex flex-wrap justify-between items-center gap-4 glow-green">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span id="work-job-title" class="text-2xl font-extrabold text-white">Software Developer</span>
+                        <span id="work-pay-rate-badge" class="px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                            Rate: $10.00 / hr
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">Complete continuous work tasks below to earn hourly income and advance time.</p>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button id="btn-retire-job" class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-amber-500/20 transition active:scale-95">
+                        <i class="fa-solid fa-award"></i>
+                        <span>Retire From Job</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Shift Live Performance Stats -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="glass-panel p-4 rounded-xl border border-slate-800 text-center">
+                    <div class="text-[10px] uppercase font-semibold text-slate-400">Hours Worked</div>
+                    <div id="stat-shift-hours" class="text-xl font-bold font-mono text-cyan-400">0 hrs</div>
+                </div>
+                <div class="glass-panel p-4 rounded-xl border border-slate-800 text-center">
+                    <div class="text-[10px] uppercase font-semibold text-slate-400">Typing WPM</div>
+                    <div id="stat-shift-wpm" class="text-xl font-bold font-mono text-emerald-400">0 WPM</div>
+                </div>
+                <div class="glass-panel p-4 rounded-xl border border-slate-800 text-center">
+                    <div class="text-[10px] uppercase font-semibold text-slate-400">Accuracy</div>
+                    <div id="stat-shift-accuracy" class="text-xl font-bold font-mono text-purple-400">100%</div>
+                </div>
+                <div class="glass-panel p-4 rounded-xl border border-slate-800 text-center">
+                    <div class="text-[10px] uppercase font-semibold text-slate-400">Performance Status</div>
+                    <div id="stat-shift-performance" class="text-sm font-bold text-emerald-400 mt-1">Excellent ($10/hr)</div>
+                </div>
+            </div>
+
+            <!-- Active Typing Prompt Board -->
+            <div class="glass-panel rounded-2xl p-6 border border-slate-800 space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <div class="text-sm font-bold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-keyboard text-emerald-400"></i>
+                        <span>Active Workplace Task:</span>
+                    </div>
+                    <span id="task-stage-badge" class="text-xs font-mono text-slate-400">Task #1</span>
+                </div>
+
+                <!-- Text to type target -->
+                <div id="work-target-text" class="p-4 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-mono text-sm leading-relaxed tracking-wide select-none">
+                    Loading work prompt...
+                </div>
+
+                <!-- Workplace Input Area -->
+                <div class="space-y-2">
+                    <textarea id="work-typing-input" rows="3" placeholder="Type the exact text prompt above to complete your shift task..."
+                        class="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-slate-100 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none transition"></textarea>
+                    <div class="flex justify-between items-center text-xs text-slate-500">
+                        <span>Keep typing prompts to accumulate hours and earn cash!</span>
+                        <span id="work-typing-progress">0% Completed</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= VIEW 4: DEATH / GAME OVER SUMMARY ================= -->
+        <section id="view-death" class="hidden w-full max-w-lg mx-auto text-center space-y-6 glass-panel rounded-3xl p-8 border border-amber-500/30 glow-amber">
+            <div class="w-20 h-20 mx-auto rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-4xl">
+                <i class="fa-solid fa-monument"></i>
+            </div>
+            <div class="space-y-2">
+                <h2 class="text-3xl font-extrabold text-amber-400">A Life Well Lived</h2>
+                <p class="text-slate-400 text-sm">You passed away peacefully at age <span id="death-age" class="font-bold text-white">82</span>.</p>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 text-left space-y-3 text-sm text-slate-300">
+                <div class="flex justify-between pb-2 border-b border-slate-800">
+                    <span class="text-slate-400">Total Life Wealth Accumulated:</span> 
+                    <span id="summary-total-cash" class="text-emerald-400 font-bold font-mono">$0</span>
+                </div>
+                <div class="flex justify-between pb-2 border-b border-slate-800">
+                    <span class="text-slate-400">Highest Career Title Achieved:</span> 
+                    <span id="summary-highest-job" class="text-white font-bold">None</span>
+                </div>
+                <div class="flex justify-between pb-2 border-b border-slate-800">
+                    <span class="text-slate-400">Jobs Held Throughout Life:</span> 
+                    <span id="summary-jobs-count" class="text-cyan-400 font-bold font-mono">0</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Final Prestige Level:</span> 
+                    <span id="summary-prestige" class="text-purple-400 font-bold font-mono">1</span>
+                </div>
+            </div>
+
+            <button id="btn-reincarnate" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-500/25 transition active:scale-95">
+                Start a New Life (Age 18)
+            </button>
+        </section>
+
+        <!-- ================= VIEW 5: BANKRUPT SCREEN ================= -->
+        <section id="view-bankrupt" class="hidden w-full max-w-md mx-auto text-center space-y-6 glass-panel rounded-3xl p-8 border border-rose-500/30 glow-red">
+            <div class="w-20 h-20 mx-auto rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-500 text-4xl">
+                <i class="fa-solid fa-skull-crossbones"></i>
+            </div>
+            <div class="space-y-2">
+                <h2 class="text-3xl font-extrabold text-rose-400">Bankrupt!</h2>
+                <p class="text-slate-400 text-sm">You ran out of money to apply for jobs or pay failed interview penalty fees ($200).</p>
+            </div>
+            <button id="btn-restart-bankrupt" class="w-full bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-400 hover:to-pink-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-rose-500/25 transition active:scale-95">
+                Try Again ($1,000 Cash)
+            </button>
+        </section>
+
+    </main>
+
+    <script>
+        // Game State
+        const state = {
+            age: 18,
+            deathAge: Math.floor(Math.random() * 16) + 75, // Secret death age between 75 and 90
+            cash: 1000,
+            prestige: 1,
+            totalEarnings: 1000,
+            currentJob: null,
+            jobsHeldCount: 0,
+            highestJobTitle: 'Unemployed',
+            soundEnabled: true,
+            apiKey: "",
+
+            // Interview state
+            interviewStep: 1,
+            interviewJob: null,
+
+            // Workplace Typing state
+            shiftHoursWorked: 0,
+            currentPromptText: "",
+            typingStartTime: null,
+            totalTypedChars: 0,
+            errorCount: 0,
+            currentPayRate: 10,
+            taskCount: 1
+        };
+
+        // Job Prompts Dictionary for Realistic Typing Tasks
+        const WORK_PROMPTS = {
+            'Software Developer': [
+                "const calculateEarnings = (hours, rate) => hours * rate; console.log(calculateEarnings(40, 10));",
+                "async function fetchUserData() { const res = await fetch('/api/user'); return await res.json(); }",
+                "function optimizeAlgorithm(arr) { return arr.filter(x => x % 2 === 0).sort((a, b) => a - b); }"
+            ],
+            'Doctor': [
+                "Patient exhibits symptoms of acute fatigue. Recommend full blood panel, hydration, and rest.",
+                "Administer 500mg Amoxicillin every 8 hours. Monitor vitals and re-evaluate in 3 days.",
+                "Surgical report: Laparoscopic procedure completed successfully with zero post-op complications."
+            ],
+            'Barista': [
+                "Double shot iced oat milk latte with extra caramel drizzle and light ice for Sarah.",
+                "Hot capuccino with cocoa powder dusting, two sugars, and toasted blueberry bagel with cream cheese.",
+                "Grande nitro cold brew with vanilla sweet cream cold foam and two pumps of hazelnut syrup."
+            ],
+            'Lawyer': [
+                "Pursuant to Clause 4B of the commercial contract, the defendant failed to deliver required assets.",
+                "The motion to dismiss is hereby submitted based on insufficient evidence and lack of jurisdiction.",
+                "Client agreement reviewed. All non-disclosure terms are compliant with federal labor regulations."
+            ],
+            'Default': [
+                "Synthesizing operational reports and finalizing quarterly roadmap milestones for team review.",
+                "Coordinating cross-functional project tasks to ensure timely delivery and client satisfaction.",
+                "Reviewing key performance metrics and identifying efficiency optimizations across all departments."
+            ]
+        };
+
+        // Preset Job Catalog Across 4 Tiers
+        const PRESET_JOBS = [
+            // Tier 1
+            { title: 'Barista / Cafe Associate', tier: 'Entry Level', tierNum: 1, cost: 50, baseSalary: 10, icon: 'fa-mug-hot', desc: 'Brew coffee, serve baked goods, and chat with local patrons.' },
+            { title: 'Cashier & Customer Service', tier: 'Entry Level', tierNum: 1, cost: 50, baseSalary: 10, icon: 'fa-store', desc: 'Process customer transactions and manage checkout lanes.' },
+            { title: 'Delivery Driver', tier: 'Entry Level', tierNum: 1, cost: 50, baseSalary: 11, icon: 'fa-truck-fast', desc: 'Deliver packages across the city in a timely manner.' },
+            
+            // Tier 2 (Requires Prestige 1+)
+            { title: 'Software Developer', tier: 'Mid Level', tierNum: 2, cost: 150, baseSalary: 18, icon: 'fa-code', desc: 'Write clean, reactive code and build modern applications.' },
+            { title: 'Registered Nurse', tier: 'Mid Level', tierNum: 2, cost: 150, baseSalary: 16, icon: 'fa-user-nurse', desc: 'Care for patients, monitor health vitals, and assist doctors.' },
+            { title: 'Graphic Designer', tier: 'Mid Level', tierNum: 2, cost: 150, baseSalary: 15, icon: 'fa-palette', desc: 'Create visuals, wireframes, and brand identity graphics.' },
+
+            // Tier 3 (Requires Prestige 2+)
+            { title: 'Data Scientist & AI Specialist', tier: 'Senior Level', tierNum: 3, cost: 300, baseSalary: 28, icon: 'fa-brain', desc: 'Train predictive models and analyze complex datasets.' },
+            { title: 'Corporate Attorney / Lawyer', tier: 'Senior Level', tierNum: 3, cost: 300, baseSalary: 32, icon: 'fa-scale-balanced', desc: 'Draft legal contracts and defend high-profile corporate clients.' },
+            { title: 'Architectural Engineer', tier: 'Senior Level', tierNum: 3, cost: 300, baseSalary: 30, icon: 'fa-compass-drafting', desc: 'Design structural blueprints for skyscrapers and public works.' },
+
+            // Tier 4 (Requires Prestige 3+)
+            { title: 'Chief Executive Officer (CEO)', tier: 'Executive', tierNum: 4, cost: 500, baseSalary: 55, icon: 'fa-crown', desc: 'Lead corporate strategy, manage investments, and drive growth.' },
+            { title: 'Commercial Airline Pilot', tier: 'Executive', tierNum: 4, cost: 500, baseSalary: 45, icon: 'fa-plane', desc: 'Fly international routes safely for major commercial airlines.' },
+            { title: 'Neurosurgeon Specialist', tier: 'Executive', tierNum: 4, cost: 500, baseSalary: 60, icon: 'fa-hospital', desc: 'Perform delicate neurosurgical operations and save lives.' }
+        ];
+
+        // Web Audio Synthesizer Sound Engine
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSfx(type) {
+            if (!state.soundEnabled) return;
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+                if (type === 'click' || type === 'type') {
+                    osc.frequency.setValueAtTime(type === 'type' ? 600 : 400, now);
+                    osc.frequency.exponentialRampToValueAtTime(200, now + 0.03);
+                    gain.gain.setValueAtTime(0.05, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.03);
+                    osc.start(now);
+                    osc.stop(now + 0.03);
+                } else if (type === 'success') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(554.37, now + 0.1);
+                    osc.frequency.setValueAtTime(659.25, now + 0.2);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'fail') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(250, now);
+                    osc.frequency.exponentialRampToValueAtTime(100, now + 0.25);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        // Update Dashboard HUD
+        function updateHud() {
+            document.getElementById('hud-age').textContent = `${state.age} yrs`;
+            document.getElementById('hud-cash').textContent = `$${Math.floor(state.cash).toLocaleString()}`;
+            document.getElementById('hud-job').textContent = state.currentJob ? state.currentJob.title : 'Unemployed';
+            document.getElementById('hud-prestige').textContent = `Lv. ${state.prestige}`;
+
+            if (state.age >= state.deathAge) {
+                triggerDeath();
+            } else if (state.cash <= 0 && !state.currentJob) {
+                showView('bankrupt');
+            }
+        }
+
+        // View Switching
+        function showView(viewName) {
+            ['job-select', 'interview', 'workplace', 'death', 'bankrupt'].forEach(v => {
+                document.getElementById(`view-${v}`).classList.add('hidden');
+            });
+            document.getElementById(`view-${viewName}`).classList.remove('hidden');
+        }
+
+        // Custom Job Cost & Tier Estimator
+        function estimateCustomJob(title) {
+            const lower = title.toLowerCase();
+            if (lower.includes('ceo') || lower.includes('director') || lower.includes('surgeon') || lower.includes('pilot') || lower.includes('president') || lower.includes('champion')) {
+                return { cost: 500, tier: 'Executive', tierNum: 4, baseSalary: 50, icon: 'fa-crown' };
+            }
+            if (lower.includes('senior') || lower.includes('physicist') || lower.includes('doctor') || lower.includes('lawyer') || lower.includes('architect')) {
+                return { cost: 300, tier: 'Senior Level', tierNum: 3, baseSalary: 30, icon: 'fa-user-graduate' };
+            }
+            if (lower.includes('junior') || lower.includes('cleaner') || lower.includes('driver') || lower.includes('waiter') || lower.includes('intern')) {
+                return { cost: 50, tier: 'Entry Level', tierNum: 1, baseSalary: 10, icon: 'fa-seedling' };
+            }
+            return { cost: 150, tier: 'Mid Level', tierNum: 2, baseSalary: 18, icon: 'fa-briefcase' };
+        }
+
+        // Render Preset Job Cards
+        function renderPresetJobs() {
+            const grid = document.getElementById('preset-jobs-grid');
+            grid.innerHTML = '';
+
+            PRESET_JOBS.forEach(job => {
+                const unlocked = job.tierNum <= state.prestige;
+                const canAfford = state.cash >= job.cost;
+
+                const card = document.createElement('div');
+                card.className = `glass-panel rounded-2xl p-5 border border-slate-800 flex flex-col justify-between transition hover:-translate-y-1 ${!unlocked || !canAfford ? 'opacity-50' : ''}`;
+
+                card.innerHTML = `
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-start">
+                            <div class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-400 text-lg">
+                                <i class="fa-solid ${job.icon}"></i>
+                            </div>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${unlocked ? 'bg-slate-800 text-slate-300 border border-slate-700' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'} uppercase">
+                                ${unlocked ? job.tier : 'Locked (Low Prestige)'}
+                            </span>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-slate-100 text-base">${job.title}</h4>
+                            <p class="text-xs text-slate-400 mt-1 line-clamp-2">${job.desc}</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 pt-4 border-t border-slate-800/80 flex justify-between items-center">
+                        <div>
+                            <div class="text-[10px] uppercase text-slate-500 font-semibold">App Fee</div>
+                            <div class="text-sm font-mono font-bold text-slate-200">$${job.cost}</div>
+                        </div>
+                        <button onclick="startInterview('${job.title}', ${job.cost}, '${job.tier}', '${job.icon}', ${job.baseSalary}, ${job.tierNum})" 
+                            ${!unlocked || !canAfford ? 'disabled' : ''}
+                            class="bg-slate-800 hover:bg-emerald-600 hover:text-slate-950 disabled:pointer-events-none text-emerald-400 font-bold px-4 py-2 rounded-xl text-xs border border-emerald-500/30 transition flex items-center gap-1.5">
+                            <span>Apply</span>
+                            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Start Multi-Question Interview
+        function startInterview(title, cost, tier, icon, baseSalary, tierNum) {
+            if (state.cash < cost) {
+                alert(`You need at least $${cost} to apply!`);
+                return;
+            }
+
+            playSfx('click');
+            state.cash -= cost;
+            state.interviewJob = { title, cost, tier, icon, baseSalary, tierNum };
+            state.interviewStep = 1;
+            updateHud();
+
+            document.getElementById('interview-job-title').textContent = title;
+            document.getElementById('interview-job-tier').textContent = tier;
+            document.getElementById('interview-fee-paid').textContent = `Fee Paid: $${cost}`;
+            document.getElementById('interview-job-icon').className = `fa-solid ${icon}`;
+            document.getElementById('interview-q-step').textContent = '1';
+
+            const chat = document.getElementById('chat-messages');
+            chat.innerHTML = '';
+            showView('interview');
+
+            // Initial Q1 Greeting
+            appendChatMessage('interviewer', `Hello! Welcome to your interview for the **${title}** position.\n\n**Question 1:** Why are you passionate about working as a ${title}, and why do you want this job?`);
+        }
+
+        function appendChatMessage(sender, text) {
+            const chat = document.getElementById('chat-messages');
+            const msg = document.createElement('div');
+            const isUser = sender === 'user';
+            msg.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
+            msg.innerHTML = `
+                <div class="max-w-[85%] rounded-2xl p-4 text-sm leading-relaxed ${
+                    isUser ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-br-none' : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-none'
+                }">
+                    <div class="flex items-center gap-2 mb-1 text-[11px] font-semibold opacity-75">
+                        <i class="fa-solid ${isUser ? 'fa-user' : 'fa-robot'}"></i>
+                        <span>${isUser ? 'You (Candidate)' : 'Hiring Director AI'}</span>
+                    </div>
+                    <div class="whitespace-pre-wrap">${text}</div>
+                </div>
+            `;
+            chat.appendChild(msg);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        // Interview Evaluation Function via Gemini or Local Fallback
+        async function evaluateAnswer(jobTitle, step, userText) {
+            try {
+                const systemPrompt = `You are a strict AI Hiring Manager for a ${jobTitle} position. Evaluate candidate answer for step ${step}.
+If short, lazy (e.g. "idk", 1-3 words), or rude -> Verdict = BAD.
+If thought out and clear -> Verdict = GOOD.
+Respond ONLY with JSON: { "verdict": "GOOD" or "BAD", "feedback": "1-2 sentences of feedback" }`;
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${state.apiKey}`;
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: `Answer: ${userText}` }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] },
+                        generationConfig: { responseMimeType: "application/json" }
+                    })
+                });
+
+                if (!response.ok) throw new Error("API Offline");
+                const res = await response.json();
+                return JSON.parse(res.candidates[0].content.parts[0].text);
+            } catch (err) {
+                // Smart Local Engine Fallback
+                const words = userText.trim().split(/\s+/).length;
+                if (words < 5 || userText.toLowerCase().includes("idk")) {
+                    return { verdict: "BAD", feedback: "Your response lacked depth and professional motivation." };
+                }
+                return { verdict: "GOOD", feedback: "Strong answer demonstrating solid intent and capability." };
+            }
+        }
+
+        // Interview Form Submit
+        document.getElementById('interview-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('user-response-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            playSfx('click');
+            appendChatMessage('user', text);
+            input.value = '';
+
+            const evalRes = await evaluateAnswer(state.interviewJob.title, state.interviewStep, text);
+
+            if (evalRes.verdict === 'BAD') {
+                playSfx('fail');
+                state.cash = Math.max(0, state.cash - 200);
+                updateHud();
+                appendChatMessage('interviewer', `❌ **APPLICATION REJECTED**\n\n${evalRes.feedback}\n\n💸 **Penalty:** Lost **-$200** fee for bad interview effort.`);
+                return;
+            }
+
+            if (state.interviewStep === 1) {
+                state.interviewStep = 2;
+                document.getElementById('interview-q-step').textContent = '2';
+                appendChatMessage('interviewer', ` Great answer! Now for **Question 2:** Why do you deserve to earn this position over other candidates? What value will you bring?`);
+            } else {
+                // Final Success Hired!
+                playSfx('success');
+                state.currentJob = state.interviewJob;
+                state.jobsHeldCount++;
+                if (state.interviewJob.title !== state.highestJobTitle) {
+                    state.highestJobTitle = state.interviewJob.title;
+                }
+                updateHud();
+
+                confetti({ particleCount: 70, spread: 60 });
+                appendChatMessage('interviewer', `🎉 **YOU ARE HIRED!**\n\n${evalRes.feedback}\n\nClick below to start your shift work!`);
+
+                setTimeout(() => {
+                    startWorkplaceShift();
+                }, 1800);
+            }
+        });
+
+        // Start Workplace Shift
+        function startWorkplaceShift() {
+            document.getElementById('work-job-title').textContent = state.currentJob.title;
+            state.shiftHoursWorked = 0;
+            state.taskCount = 1;
+            state.totalTypedChars = 0;
+            state.errorCount = 0;
+            state.typingStartTime = null;
+
+            loadNextWorkPrompt();
+            showView('workplace');
+        }
+
+        function loadNextWorkPrompt() {
+            const jobTitle = state.currentJob.title;
+            const prompts = WORK_PROMPTS[jobTitle] || WORK_PROMPTS['Default'];
+            state.currentPromptText = prompts[(state.taskCount - 1) % prompts.length];
+            
+            document.getElementById('work-target-text').textContent = state.currentPromptText;
+            document.getElementById('work-typing-input').value = '';
+            document.getElementById('task-stage-badge').textContent = `Task #${state.taskCount}`;
+            document.getElementById('work-typing-progress').textContent = `0% Completed`;
+        }
+
+        // Typing Listener for On-The-Job Tasks
+        document.getElementById('work-typing-input').addEventListener('input', (e) => {
+            playSfx('type');
+            if (!state.typingStartTime) state.typingStartTime = Date.now();
+
+            const typed = e.target.value;
+            const target = state.currentPromptText;
+
+            // Calculate Progress & Accuracy
+            const progress = Math.min(100, Math.floor((typed.length / target.length) * 100));
+            document.getElementById('work-typing-progress').textContent = `${progress}% Completed`;
+
+            let errors = 0;
+            for (let i = 0; i < typed.length; i++) {
+                if (typed[i] !== target[i]) errors++;
+            }
+
+            const accuracy = typed.length > 0 ? Math.max(0, Math.floor(((typed.length - errors) / typed.length) * 100)) : 100;
+            const elapsedMins = (Date.now() - state.typingStartTime) / 60000;
+            const wpm = elapsedMins > 0 ? Math.floor((typed.length / 5) / elapsedMins) : 0;
+
+            document.getElementById('stat-shift-wpm').textContent = `${wpm} WPM`;
+            document.getElementById('stat-shift-accuracy').textContent = `${accuracy}%`;
+
+            // Performance Rate Check ($10/hr if good, $5/hr if poor)
+            if (wpm >= 20 && accuracy >= 88) {
+                state.currentPayRate = state.currentJob.baseSalary;
+                document.getElementById('stat-shift-performance').textContent = `Excellent ($${state.currentPayRate.toFixed(2)}/hr)`;
+                document.getElementById('stat-shift-performance').className = 'text-sm font-bold text-emerald-400 mt-1';
+            } else {
+                state.currentPayRate = 5.00;
+                document.getElementById('stat-shift-performance').textContent = `Low ($5.00/hr)`;
+                document.getElementById('stat-shift-performance').className = 'text-sm font-bold text-rose-400 mt-1';
+            }
+
+            // Completed Target Prompt
+            if (typed === target) {
+                playSfx('success');
+                // Advance 4 Shift Hours per completed task prompt
+                state.shiftHoursWorked += 4;
+                const earned = state.currentPayRate * 4;
+                state.cash += earned;
+                state.totalEarnings += earned;
+
+                // Advance Age slightly (every 200 shift hours = +1 Year)
+                if (state.shiftHoursWorked % 12 === 0) {
+                    state.age++;
+                }
+
+                updateHud();
+
+                document.getElementById('stat-shift-hours').textContent = `${state.shiftHoursWorked} hrs`;
+                document.getElementById('work-pay-rate-badge').textContent = `Rate: $${state.currentPayRate.toFixed(2)} / hr`;
+
+                // Load Next Task Prompt ("Type more after you type")
+                state.taskCount++;
+                loadNextWorkPrompt();
+            }
+        });
+
+        // Retire Job Handler
+        document.getElementById('btn-retire-job').addEventListener('click', () => {
+            if (!confirm("Retire from your current job? Doing well boosts your Prestige Level and unlocks higher tier job options!")) return;
+
+            playSfx('success');
+            // Prestige Level Up
+            state.prestige = Math.min(4, state.prestige + 1);
+            state.currentJob = null;
+            updateHud();
+
+            document.getElementById('retire-notice').classList.remove('hidden');
+            renderPresetJobs();
+            showView('job-select');
+        });
+
+        // Custom Job Form Apply
+        document.getElementById('btn-apply-custom').addEventListener('click', () => {
+            const input = document.getElementById('custom-job-input').value.trim();
+            if (!input) return alert("Type a custom job title first!");
+
+            const info = estimateCustomJob(input);
+            startInterview(input, info.cost, info.tier, info.icon, info.baseSalary, info.tierNum);
+        });
+
+        // Withdraw Application
+        document.getElementById('btn-withdraw-app').addEventListener('click', () => {
+            showView('job-select');
+        });
+
+        // Trigger Death / Life End
+        function triggerDeath() {
+            playSfx('fail');
+            document.getElementById('death-age').textContent = state.age;
+            document.getElementById('summary-total-cash').textContent = `$${Math.floor(state.totalEarnings).toLocaleString()}`;
+            document.getElementById('summary-highest-job').textContent = state.highestJobTitle;
+            document.getElementById('summary-jobs-count').textContent = state.jobsHeldCount;
+            document.getElementById('summary-prestige').textContent = state.prestige;
+
+            showView('death');
+        }
+
+        // Restart Life Logic
+        function restartLife() {
+            state.age = 18;
+            state.deathAge = Math.floor(Math.random() * 16) + 75;
+            state.cash = 1000;
+            state.prestige = 1;
+            state.totalEarnings = 1000;
+            state.currentJob = null;
+            state.jobsHeldCount = 0;
+            state.highestJobTitle = 'Unemployed';
+
+            updateHud();
+            renderPresetJobs();
+            showView('job-select');
+        }
+
+        document.getElementById('btn-reincarnate').addEventListener('click', restartLife);
+        document.getElementById('btn-restart-bankrupt').addEventListener('click', restartLife);
+        document.getElementById('btn-restart').addEventListener('click', () => {
+            if (confirm("Reset life and restart at age 18 with $1,000?")) restartLife();
+        });
+
+        // Sound Toggle
+        document.getElementById('btn-sound').addEventListener('click', () => {
+            state.soundEnabled = !state.soundEnabled;
+            document.getElementById('icon-sound').className = state.soundEnabled ? "fa-solid fa-volume-high text-xs" : "fa-solid fa-volume-xmark text-xs text-rose-400";
+        });
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            updateHud();
+            renderPresetJobs();
+            showView('job-select');
+        });
+    </script>
+</body>
+</html>
