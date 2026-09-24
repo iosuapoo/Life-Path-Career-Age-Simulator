@@ -154,7 +154,7 @@
                 </p>
             </div>
 
-            <!-- Custom Job Input with Real-time Job Title Validation -->
+            <!-- Custom Job Input -->
             <div class="glass-panel rounded-2xl p-6 border border-slate-800 shadow-xl space-y-3 glow-blue">
                 <label for="custom-job-input" class="block text-sm font-semibold text-slate-200 flex items-center gap-2">
                     <i class="fa-solid fa-wand-magic-sparkles text-cyan-400"></i>
@@ -174,7 +174,6 @@
                             <i class="fa-solid fa-arrow-right"></i>
                         </button>
                     </div>
-                    <!-- Dynamic "This is not a job" Error Notice -->
                     <p id="custom-job-error" class="text-xs text-rose-400 font-bold mt-2.5 hidden flex items-center gap-1.5 animate-bounce">
                         <i class="fa-solid fa-circle-xmark text-sm"></i>
                         <span>This is not a job! Please enter a recognized career or profession.</span>
@@ -244,8 +243,18 @@
                 <div id="chat-messages" class="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4"></div>
 
                 <div class="p-4 bg-slate-900/80 border-t border-slate-800 space-y-3">
+                    <div id="quick-answer-container" class="space-y-1.5">
+                        <div class="text-[11px] font-semibold text-emerald-400 flex items-center gap-1">
+                            <i class="fa-solid fa-lightbulb"></i>
+                            <span>Quick Answer Suggestions (Click to Auto-Fill):</span>
+                        </div>
+                        <div id="quick-chips" class="flex flex-wrap gap-2">
+                            <!-- Populated dynamically by JS -->
+                        </div>
+                    </div>
+
                     <form id="interview-form" class="flex gap-2">
-                        <textarea id="user-response-input" rows="2" placeholder="Type your answer here..." 
+                        <textarea id="user-response-input" rows="2" placeholder="Type your answer or click a suggestion above..." 
                             class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm resize-none" required></textarea>
                         
                         <button type="submit" id="btn-submit-answer" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold px-5 rounded-xl shadow-lg shadow-emerald-500/20 flex flex-col items-center justify-center gap-1 transition active:scale-95 disabled:opacity-50">
@@ -436,7 +445,7 @@
             </div>
             <div class="space-y-2">
                 <h2 class="text-3xl font-extrabold text-rose-400">Bankrupt!</h2>
-                <p class="text-slate-400 text-sm">You ran out of money to apply for jobs or pay failed interview penalty fees ($200).</p>
+                <p class="text-slate-400 text-sm">You ran out of money to apply for jobs.</p>
             </div>
             <button id="btn-restart-bankrupt" class="w-full bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-400 hover:to-pink-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-rose-500/25 transition active:scale-95">
                 Try Again ($1,000 Cash)
@@ -457,7 +466,6 @@
             jobsHeldCount: 0,
             highestJobTitle: 'Unemployed',
             soundEnabled: true,
-            apiKey: "",
 
             // Interview state
             interviewStep: 1,
@@ -476,8 +484,7 @@
             errorCount: 0,
             currentPayRate: 10,
             rating: 5.0,
-            performanceMoney: 0,
-            patience: 100
+            performanceMoney: 0
         };
 
         // Tailored Interview Questions Repository per Job / Career Path
@@ -570,64 +577,10 @@
                 ];
             }
 
-            // Fallback dynamic questions generated specifically with job title
             return [
                 `Why are you passionate about pursuing a career as a ${jobTitle}, and what core skills make you ideal for this role?`,
                 `When faced with a demanding client or challenging task as a ${jobTitle}, what specific steps do you take to resolve it?`
             ];
-        }
-
-        // Recognized Job Keywords & Suffixes Dictionary for Validation
-        const KNOWN_JOB_TITLES = [
-            'doctor', 'nurse', 'engineer', 'developer', 'programmer', 'lawyer', 'attorney', 'teacher',
-            'professor', 'chef', 'cook', 'baker', 'barista', 'waiter', 'waitress', 'pilot', 'astronaut',
-            'police', 'officer', 'firefighter', 'detective', 'artist', 'designer', 'architect', 'writer',
-            'author', 'journalist', 'reporter', 'actor', 'actress', 'singer', 'musician', 'dentist',
-            'surgeon', 'vet', 'veterinarian', 'electrician', 'plumber', 'carpenter', 'mechanic', 'driver',
-            'cashier', 'accountant', 'banker', 'trader', 'investor', 'ceo', 'cto', 'manager', 'director',
-            'president', 'politician', 'judge', 'scientist', 'biologist', 'chemist', 'physicist', 'astronomer',
-            'esports champion', 'streamer', 'influencer', 'youtuber', 'gamer', 'coach', 'trainer', 'athlete',
-            'swimmer', 'runner', 'boxer', 'stunt driver', 'photographer', 'videographer', 'animator',
-            'barber', 'stylist', 'model', 'agent', 'broker', 'realtor', 'janitor', 'cleaner', 'guard',
-            'soldier', 'sailor', 'captain', 'therapist', 'psychologist', 'pharmacist', 'paramedic',
-            'librarian', 'curator', 'geologist', 'ecologist', 'statist', 'analyst', 'consultant',
-            'flight attendant', 'bellhop', 'concierge', 'tailor', 'jeweler', 'florist', 'farmer',
-            'rancher', 'fisherman', 'miner', 'welder', 'machinist', 'surveyor', 'translator',
-            'interpreter', 'editor', 'proofreader', 'copywriter', 'marketer', 'recruiter', 'historian',
-            'archaeologist', 'sociologist', 'philosopher', 'statistician', 'actuary', 'botanist', 'zoologist',
-            'geneticist', 'microbiologist', 'immunologist', 'neurologist', 'cardiologist', 'dermatologist',
-            'pediatrician', 'psychiatrist', 'radiologist', 'pathologist', 'anesthesiologist', 'oncologist',
-            'orthopedist', 'optometrist', 'audiologist', 'podiatrist', 'chiropractor', 'dietitian',
-            'nutritionist', 'epidemiologist', 'toxicologist', 'pharmacologist', 'virologist', 'bacteriologist',
-            'mycologist', 'parasitologist', 'biochemist', 'biophysicist', 'bioinformatician', 'neuroscientist',
-            'endocrinologist', 'gastroenterologist', 'nephrologist', 'pulmonologist', 'rheumatologist',
-            'urologist', 'hematologist', 'immunopathologist', 'histopathologist', 'cytopathologist', 'toxicopathologist'
-        ];
-
-        const JOB_SUFFIXES = ['er', 'or', 'ist', 'ian', 'ant', 'ent', 'man', 'woman', 'officer', 'specialist', 'analyst', 'manager', 'director', 'lead', 'head', 'chief', 'worker', 'driver', 'operator', 'agent', 'designer', 'developer', 'engineer', 'consultant', 'advisor', 'expert'];
-
-        // Function to Validate if String is a Real Job
-        function validateJobTitle(input) {
-            const clean = input.trim().toLowerCase();
-            if (!clean || clean.length < 3) return false;
-
-            // Reject single numbers or nonsense non-alphabetics
-            if (/^\d+$/.test(clean) || /^[^a-zA-Z\s]+$/.test(clean)) return false;
-
-            // Known job list exact/substring match
-            const matchedKnown = KNOWN_JOB_TITLES.some(j => clean.includes(j) || j.includes(clean));
-            if (matchedKnown) return true;
-
-            // Check job suffix patterns (e.g., "Game Tester", "Cybersecurity Specialist")
-            const words = clean.split(/\s+/);
-            const hasJobSuffix = words.some(w => JOB_SUFFIXES.some(suf => w.endsWith(suf)));
-            if (hasJobSuffix) return true;
-
-            // Common non-job words filter
-            const nonJobs = ['apple', 'banana', 'cat', 'dog', 'table', 'chair', 'car', 'house', 'shoe', 'asdf', 'qwerty', 'thing', 'stuff', 'sad', 'happy', 'food', 'water', 'phone', 'computer', 'pencil', 'paper', 'pizza', 'burger', 'hello', 'test', 'nothing'];
-            if (nonJobs.includes(clean)) return false;
-
-            return false;
         }
 
         // Customer Database with Requests per Job
@@ -717,6 +670,21 @@
             } catch (e) { console.error(e); }
         }
 
+        // View Controller Helper
+        function showView(viewId) {
+            const views = ['job-select', 'interview', 'workplace', 'death', 'bankrupt'];
+            views.forEach(id => {
+                const el = document.getElementById(`view-${id}`);
+                if (el) {
+                    if (id === viewId) {
+                        el.classList.remove('hidden');
+                    } else {
+                        el.classList.add('hidden');
+                    }
+                }
+            });
+        }
+
         // Update Dashboard HUD
         function updateHud() {
             document.getElementById('hud-age').textContent = `${state.age} yrs`;
@@ -731,12 +699,12 @@
             }
         }
 
-        // View Switching
-        function showView(viewName) {
-            ['job-select', 'interview', 'workplace', 'death', 'bankrupt'].forEach(v => {
-                document.getElementById(`view-${v}`).classList.add('hidden');
-            });
-            document.getElementById(`view-${viewName}`).classList.remove('hidden');
+        // Validate Job Title
+        function validateJobTitle(input) {
+            const clean = input.trim().toLowerCase();
+            if (!clean || clean.length < 2) return false;
+            if (/^\d+$/.test(clean) || /^[^a-zA-Z0-9\s]+$/.test(clean)) return false;
+            return true;
         }
 
         // Custom Job Cost & Tier Estimator
@@ -757,6 +725,7 @@
         // Render Preset Job Cards
         function renderPresetJobs() {
             const grid = document.getElementById('preset-jobs-grid');
+            if (!grid) return;
             grid.innerHTML = '';
 
             PRESET_JOBS.forEach(job => {
@@ -803,53 +772,57 @@
         const customJobInput = document.getElementById('custom-job-input');
         const customJobError = document.getElementById('custom-job-error');
 
-        customJobInput.addEventListener('input', () => {
-            const text = customJobInput.value.trim();
-            if (!text) {
-                customJobError.classList.add('hidden');
-                customJobInput.classList.remove('border-rose-500', 'focus:ring-rose-500');
-                return;
-            }
+        if (customJobInput) {
+            customJobInput.addEventListener('input', () => {
+                const text = customJobInput.value.trim();
+                if (!text) {
+                    customJobError.classList.add('hidden');
+                    customJobInput.classList.remove('border-rose-500', 'focus:ring-rose-500');
+                    return;
+                }
 
-            const isValid = validateJobTitle(text);
-            if (!isValid) {
-                customJobError.classList.remove('hidden');
-                customJobInput.classList.add('border-rose-500');
-                customJobInput.classList.remove('focus:ring-cyan-500');
-            } else {
-                customJobError.classList.add('hidden');
-                customJobInput.classList.remove('border-rose-500');
-                customJobInput.classList.add('focus:ring-cyan-500');
-            }
-        });
+                const isValid = validateJobTitle(text);
+                if (!isValid) {
+                    customJobError.classList.remove('hidden');
+                    customJobInput.classList.add('border-rose-500');
+                    customJobInput.classList.remove('focus:ring-cyan-500');
+                } else {
+                    customJobError.classList.add('hidden');
+                    customJobInput.classList.remove('border-rose-500');
+                    customJobInput.classList.add('focus:ring-cyan-500');
+                }
+            });
+        }
 
         // Apply Custom Job Button Handler
-        document.getElementById('btn-apply-custom').addEventListener('click', () => {
-            const inputVal = customJobInput.value.trim();
+        const btnApplyCustom = document.getElementById('btn-apply-custom');
+        if (btnApplyCustom) {
+            btnApplyCustom.addEventListener('click', () => {
+                const inputVal = customJobInput.value.trim();
 
-            if (!inputVal) {
-                customJobError.querySelector('span').textContent = "Please type a job title first!";
-                customJobError.classList.remove('hidden');
-                playSfx('fail');
-                return;
-            }
+                if (!inputVal) {
+                    customJobError.querySelector('span').textContent = "Please type a job title first!";
+                    customJobError.classList.remove('hidden');
+                    playSfx('fail');
+                    return;
+                }
 
-            const isValid = validateJobTitle(inputVal);
+                const isValid = validateJobTitle(inputVal);
 
-            if (!isValid) {
-                playSfx('fail');
-                customJobError.querySelector('span').textContent = "This is not a job! Please enter a recognized career or profession.";
-                customJobError.classList.remove('hidden');
-                customJobInput.classList.add('border-rose-500');
-                return;
-            }
+                if (!isValid) {
+                    playSfx('fail');
+                    customJobError.querySelector('span').textContent = "This is not a job! Please enter a recognized career or profession.";
+                    customJobError.classList.remove('hidden');
+                    customJobInput.classList.add('border-rose-500');
+                    return;
+                }
 
-            // Valid Job Entered!
-            customJobError.classList.add('hidden');
-            customJobInput.classList.remove('border-rose-500');
-            const info = estimateCustomJob(inputVal);
-            startInterview(inputVal, info.cost, info.tier, info.icon, info.baseSalary, info.tierNum);
-        });
+                customJobError.classList.add('hidden');
+                customJobInput.classList.remove('border-rose-500');
+                const info = estimateCustomJob(inputVal);
+                startInterview(inputVal, info.cost, info.tier, info.icon, info.baseSalary, info.tierNum);
+            });
+        }
 
         // Start Multi-Question Interview
         function startInterview(title, cost, tier, icon, baseSalary, tierNum) {
@@ -876,11 +849,39 @@
             chat.innerHTML = '';
             showView('interview');
 
+            renderQuickSuggestions(title);
             appendChatMessage('interviewer', `Hello! Welcome to your interview for the **${title}** position.\n\n**Question 1:** ${questions[0]}`);
+        }
+
+        // Render Quick Answer Suggestion Chips
+        function renderQuickSuggestions(jobTitle) {
+            const container = document.getElementById('quick-chips');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const suggestions = [
+                `I have strong problem-solving skills and great attention to detail as a ${jobTitle}.`,
+                `I focus on customer satisfaction, teamwork, and delivering reliable, high-quality results.`,
+                `I am dedicated, quick to learn, and always handle high-pressure situations professionally.`
+            ];
+
+            suggestions.forEach(text => {
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.className = 'bg-slate-800 hover:bg-emerald-600/30 text-emerald-300 hover:text-white border border-emerald-500/30 text-xs px-3 py-1.5 rounded-lg transition text-left truncate max-w-full';
+                chip.textContent = text;
+                chip.onclick = () => {
+                    const input = document.getElementById('user-response-input');
+                    if (input) input.value = text;
+                    playSfx('click');
+                };
+                container.appendChild(chip);
+            });
         }
 
         function appendChatMessage(sender, text) {
             const chat = document.getElementById('chat-messages');
+            if (!chat) return;
             const msg = document.createElement('div');
             const isUser = sender === 'user';
             msg.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
@@ -899,92 +900,67 @@
             chat.scrollTop = chat.scrollHeight;
         }
 
-        // Evaluate Answer Logic based on Explanation Quality rather than Raw Word Count
+        // Evaluate Answer Logic
         async function evaluateAnswer(jobTitle, step, userText) {
             const clean = userText.trim().toLowerCase();
             
-            // Check for evasive or non-explanatory low effort responses
-            const evasiveWords = ['idk', 'whatever', 'no idea', 'dunno', 'pass', 'asdf', 'qwerty', 'nothing', 'no', 'none', 'dont know', "don't know", 'idbc', 'idc'];
-            const isEvasive = evasiveWords.some(e => clean === e || clean.startsWith(e + ' '));
-
-            if (isEvasive || clean.length < 3) {
+            if (clean.length < 2) {
                 return {
-                    verdict: "BAD",
-                    feedback: "Your response was dismissive or evasive instead of providing a reasoned explanation."
-                };
-            }
-
-            // Explanatory keywords indicating reasoning, method, action, care, or solution
-            const explanationTerms = [
-                'because', 'by', 'will', 'ensure', 'help', 'solve', 'check', 'care', 'listen', 'quality',
-                'fast', 'analyze', 'plan', 'patient', 'client', 'code', 'fix', 'safety', 'focus', 'work',
-                'team', 'review', 'deliver', 'manage', 'process', 'communicate', 'verify', 'study',
-                'strategy', 'support', 'trust', 'explain', 'understand', 'resolve', 'best', 'handle',
-                'service', 'priority', 'clear', 'testing', 'efficient', 'design', 'protect', 'value',
-                'experience', 'dedication', 'skill', 'professional', 'follow', 'solution', 'step', 'action'
-            ];
-
-            const matchesExplanation = explanationTerms.some(term => clean.includes(term));
-            const jobWords = jobTitle.toLowerCase().split(/\s+/).filter(w => w.length > 3);
-            const mentionsDomain = jobWords.some(jw => clean.includes(jw));
-            const hasExplanatoryStructure = clean.includes('i would') || clean.includes('i will') || clean.includes('by ') || clean.includes('to ensure') || clean.includes('i prioritize') || clean.includes('i focus');
-
-            if (matchesExplanation || mentionsDomain || hasExplanatoryStructure) {
-                return {
-                    verdict: "GOOD",
-                    feedback: `Strong explanation! You demonstrated a clear approach and practical reasoning for a ${jobTitle}.`
+                    verdict: "WARN",
+                    feedback: "Please type a short response or click one of the quick suggestions above!"
                 };
             }
 
             return {
-                verdict: "BAD",
-                feedback: `Your answer lacked an explanation of how or why you would perform the job duties as a ${jobTitle}.`
+                verdict: "GOOD",
+                feedback: `Fantastic answer! Your dedication and clear approach make you an ideal fit for a ${jobTitle}.`
             };
         }
 
         // Interview Form Submit
-        document.getElementById('interview-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const input = document.getElementById('user-response-input');
-            const text = input.value.trim();
-            if (!text) return;
+        const interviewForm = document.getElementById('interview-form');
+        if (interviewForm) {
+            interviewForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const input = document.getElementById('user-response-input');
+                const text = input.value.trim();
+                if (!text) return;
 
-            playSfx('click');
-            appendChatMessage('user', text);
-            input.value = '';
+                playSfx('click');
+                appendChatMessage('user', text);
+                input.value = '';
 
-            const evalRes = await evaluateAnswer(state.interviewJob.title, state.interviewStep, text);
+                const evalRes = await evaluateAnswer(state.interviewJob.title, state.interviewStep, text);
 
-            if (evalRes.verdict === 'BAD') {
-                playSfx('fail');
-                state.cash = Math.max(0, state.cash - 200);
-                updateHud();
-                appendChatMessage('interviewer', `❌ **APPLICATION REJECTED**\n\n${evalRes.feedback}\n\n💸 **Penalty:** Lost **-$200** fee for bad interview effort.`);
-                return;
-            }
-
-            if (state.interviewStep === 1) {
-                state.interviewStep = 2;
-                document.getElementById('interview-q-step').textContent = '2';
-                const q2 = state.interviewJob.questions ? state.interviewJob.questions[1] : `How do you ensure customer satisfaction as a ${state.interviewJob.title}?`;
-                appendChatMessage('interviewer', `Great explanation! Now for **Question 2:** ${q2}`);
-            } else {
-                playSfx('success');
-                state.currentJob = state.interviewJob;
-                state.jobsHeldCount++;
-                if (state.interviewJob.title !== state.highestJobTitle) {
-                    state.highestJobTitle = state.interviewJob.title;
+                if (evalRes.verdict === 'WARN') {
+                    playSfx('fail');
+                    appendChatMessage('interviewer', `⚠️ ${evalRes.feedback}`);
+                    return;
                 }
-                updateHud();
 
-                confetti({ particleCount: 70, spread: 60 });
-                appendChatMessage('interviewer', `🎉 **YOU ARE HIRED!**\n\n${evalRes.feedback}\n\nOpening customer waiting room now! Get ready to assist your first client.`);
+                if (state.interviewStep === 1) {
+                    state.interviewStep = 2;
+                    document.getElementById('interview-q-step').textContent = '2';
+                    const q2 = state.interviewJob.questions ? state.interviewJob.questions[1] : `How do you ensure customer satisfaction as a ${state.interviewJob.title}?`;
+                    appendChatMessage('interviewer', `Great answer! Now for **Question 2:** ${q2}`);
+                } else {
+                    playSfx('success');
+                    state.currentJob = state.interviewJob;
+                    state.jobsHeldCount++;
+                    if (state.interviewJob.title !== state.highestJobTitle) {
+                        state.highestJobTitle = state.interviewJob.title;
+                    }
+                    updateHud();
 
-                setTimeout(() => {
-                    startWorkplaceShift();
-                }, 1800);
-            }
-        });
+                    confetti({ particleCount: 70, spread: 60 });
+                    appendChatMessage('interviewer', `🎉 **YOU ARE HIRED!**\n\n${evalRes.feedback}\n\nOpening customer waiting room now! Get ready to assist your first client.`);
+
+                    setTimeout(() => {
+                        startWorkplaceShift();
+                    }, 1800);
+                }
+            });
+        }
 
         // Start Customer Service Shift
         function startWorkplaceShift() {
@@ -1032,16 +1008,19 @@
             document.getElementById('work-typing-progress').textContent = `0% Completed`;
 
             const loanBtn = document.getElementById('btn-emergency-loan');
-            if (state.cash < 20) {
-                loanBtn.classList.remove('hidden');
-            } else {
-                loanBtn.classList.add('hidden');
+            if (loanBtn) {
+                if (state.cash < 20) {
+                    loanBtn.classList.remove('hidden');
+                } else {
+                    loanBtn.classList.add('hidden');
+                }
             }
         }
 
         // Display Toast Feedback for Performance Money Changes
         function showPerformanceToast(isGood, message, amountText) {
             const toast = document.getElementById('performance-feedback-toast');
+            if (!toast) return;
             const msgEl = document.getElementById('toast-message');
             const amtEl = document.getElementById('toast-amount');
 
@@ -1057,58 +1036,62 @@
 
             amtEl.textContent = amountText;
             
-            // Auto hide toast after 4 seconds
             setTimeout(() => {
                 toast.classList.add('hidden');
             }, 4000);
         }
 
-        // Typing Listener for Helping Customers & Evaluating Writing Quality
-        document.getElementById('work-typing-input').addEventListener('input', (e) => {
-            playSfx('type');
-            if (!state.typingStartTime) state.typingStartTime = Date.now();
+        // Typing Listener
+        const workTypingInput = document.getElementById('work-typing-input');
+        if (workTypingInput) {
+            workTypingInput.addEventListener('input', (e) => {
+                playSfx('type');
+                if (!state.typingStartTime) state.typingStartTime = Date.now();
 
-            const typed = e.target.value;
-            const target = state.currentPromptText;
+                const typed = e.target.value;
+                const target = state.currentPromptText;
 
-            const progress = Math.min(100, Math.floor((typed.length / target.length) * 100));
-            document.getElementById('work-typing-progress').textContent = `${progress}% Completed`;
+                const progress = Math.min(100, Math.floor((typed.length / target.length) * 100));
+                document.getElementById('work-typing-progress').textContent = `${progress}% Completed`;
 
-            // Calculate current typing errors
-            let errors = 0;
-            for (let i = 0; i < typed.length; i++) {
-                if (typed[i] !== target[i]) errors++;
-            }
-            state.errorCount = errors;
+                let errors = 0;
+                for (let i = 0; i < typed.length; i++) {
+                    if (typed[i] !== target[i]) errors++;
+                }
+                state.errorCount = errors;
 
-            const accuracy = typed.length > 0 ? Math.max(0, Math.floor(((typed.length - errors) / typed.length) * 100)) : 100;
-            const elapsedMins = (Date.now() - state.typingStartTime) / 60000;
-            const wpm = elapsedMins > 0 ? Math.floor((typed.length / 5) / elapsedMins) : 0;
+                const accuracy = typed.length > 0 ? Math.max(0, Math.floor(((typed.length - errors) / typed.length) * 100)) : 100;
+                const elapsedMins = (Date.now() - state.typingStartTime) / 60000;
+                const wpm = elapsedMins > 0 ? Math.floor((typed.length / 5) / elapsedMins) : 0;
 
-            document.getElementById('stat-shift-wpm').textContent = `${wpm} WPM`;
+                document.getElementById('stat-shift-wpm').textContent = `${wpm} WPM`;
 
-            // Display Writing Accuracy
-            const accuracyEl = document.getElementById('stat-writing-accuracy');
-            accuracyEl.textContent = `${accuracy}% ${accuracy >= 90 ? 'High Quality' : accuracy >= 75 ? 'Average' : 'Poor Quality'}`;
-            accuracyEl.className = accuracy >= 90 ? 'text-xs font-bold text-emerald-400 mt-1' : accuracy >= 75 ? 'text-xs font-bold text-amber-400 mt-1' : 'text-xs font-bold text-rose-400 mt-1';
-        });
+                const accuracyEl = document.getElementById('stat-writing-accuracy');
+                if (accuracyEl) {
+                    accuracyEl.textContent = `${accuracy}% ${accuracy >= 90 ? 'High Quality' : accuracy >= 75 ? 'Average' : 'Poor Quality'}`;
+                    accuracyEl.className = accuracy >= 90 ? 'text-xs font-bold text-emerald-400 mt-1' : accuracy >= 75 ? 'text-xs font-bold text-amber-400 mt-1' : 'text-xs font-bold text-rose-400 mt-1';
+                }
+            });
 
-        // Keydown Handler for Enter Key to Submit Customer Resolution
-        document.getElementById('work-typing-input').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
+            workTypingInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    submitCustomerTask();
+                }
+            });
+        }
+
+        const btnSubmitTask = document.getElementById('btn-submit-customer-task');
+        if (btnSubmitTask) {
+            btnSubmitTask.addEventListener('click', () => {
                 submitCustomerTask();
-            }
-        });
-
-        // Button Handler for Manual Submit & Collect Payment
-        document.getElementById('btn-submit-customer-task').addEventListener('click', () => {
-            submitCustomerTask();
-        });
+            });
+        }
 
         // Process Customer Payment & Advance Task
         function submitCustomerTask() {
             const inputEl = document.getElementById('work-typing-input');
+            if (!inputEl) return;
             const typed = inputEl.value.trim();
             const target = state.currentPromptText.trim();
             const errNotice = document.getElementById('typing-error-notice');
@@ -1127,42 +1110,36 @@
 
             if (errNotice) errNotice.classList.add('hidden');
 
-            const totalElapsedSeconds = state.typingStartTime ? (Date.now() - state.typingStartTime) / 1000 : 5;
             const accuracy = typed.length > 0 ? Math.max(0, Math.floor(((typed.length - state.errorCount) / typed.length) * 100)) : 100;
             
-            // Determine performance impact based on accuracy & typing errors
             let perfDelta = 0;
             let payRateChange = 0;
             let ratingChange = 0;
             let isGoodPerformance = false;
 
             if (accuracy >= 92 && state.errorCount <= 2) {
-                // Excellent Writing Performance
                 isGoodPerformance = true;
-                perfDelta = Math.round(state.currentTaskPayout * 0.5) + 15; // Performance Money Bonus
-                payRateChange = 0.50; // Hourly Raise
+                perfDelta = Math.round(state.currentTaskPayout * 0.5) + 15;
+                payRateChange = 0.50;
                 ratingChange = 0.2;
                 playSfx('success');
                 showPerformanceToast(true, "EXCELLENT SERVICE! Response submitted and payment collected!", `+${perfDelta.toFixed(2)} Bonus`);
             } else if (accuracy >= 80) {
-                // Good/Standard Writing Performance
                 isGoodPerformance = true;
-                perfDelta = Math.round(state.currentTaskPayout * 0.2); // Small Bonus
+                perfDelta = Math.round(state.currentTaskPayout * 0.2);
                 payRateChange = 0.15;
                 ratingChange = 0.05;
                 playSfx('success');
                 showPerformanceToast(true, "CUSTOMER SATISFIED! Response submitted and payment collected.", `+${perfDelta.toFixed(2)} Bonus`);
             } else {
-                // Poor Writing / Too Many Mistakes
                 isGoodPerformance = false;
-                perfDelta = -Math.round(state.currentTaskPayout * 0.35); // Quality Penalty
-                payRateChange = -0.40; // Pay Cut
+                perfDelta = -Math.round(state.currentTaskPayout * 0.35);
+                payRateChange = -0.40;
                 ratingChange = -0.3;
                 playSfx('fail');
                 showPerformanceToast(false, "CUSTOMER DISSATISFIED! Typing mistakes lowered your payment.", `${perfDelta.toFixed(2)} Quality Penalty`);
             }
 
-            // Update Performance Stats
             state.performanceMoney += perfDelta;
             state.currentPayRate = Math.max(5.00, state.currentPayRate + payRateChange);
             state.rating = Math.min(5.0, Math.max(1.0, state.rating + ratingChange));
@@ -1174,60 +1151,79 @@
             state.shiftHoursWorked += 2;
             state.customerQueueCount = Math.max(1, state.customerQueueCount + Math.floor(Math.random() * 2) - 1);
 
-            // Advance Age slightly (every 10 customers = +1 Year)
             if (state.customersServed % 10 === 0) {
                 state.age++;
             }
 
-            // Update UI HUD & Stats
             document.getElementById('work-pay-rate-badge').textContent = `Rate: $${state.currentPayRate.toFixed(2)} / hr`;
             document.getElementById('stat-shift-rating').textContent = `${state.rating.toFixed(1)} ⭐`;
             
             const perfMoneyEl = document.getElementById('stat-performance-money');
-            perfMoneyEl.textContent = `${state.performanceMoney >= 0 ? '+' : ''}$${state.performanceMoney.toFixed(2)}`;
-            perfMoneyEl.className = state.performanceMoney >= 0 ? "text-lg font-bold font-mono text-emerald-400" : "text-lg font-bold font-mono text-rose-400";
+            if (perfMoneyEl) {
+                perfMoneyEl.textContent = `${state.performanceMoney >= 0 ? '+' : ''}$${state.performanceMoney.toFixed(2)}`;
+                perfMoneyEl.className = state.performanceMoney >= 0 ? "text-lg font-bold font-mono text-emerald-400" : "text-lg font-bold font-mono text-rose-400";
+            }
 
             updateHud();
 
-            // Append to Customer History Log
             const logContainer = document.getElementById('work-history-log');
-            if (state.customersServed === 1) logContainer.innerHTML = '';
-            
-            const logItem = document.createElement('div');
-            logItem.className = 'flex justify-between items-center bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 text-slate-300';
-            logItem.innerHTML = `
-                <span class="flex items-center gap-2">
-                    <i class="fa-solid ${isGoodPerformance ? 'fa-circle-check text-emerald-400' : 'fa-triangle-exclamation text-rose-400'}"></i>
-                    <span>Helped <strong>${state.currentCustomer.name}</strong> (${accuracy}% accuracy)</span>
-                </span>
-                <span class="${totalEarned >= 0 ? 'text-emerald-400' : 'text-rose-400'} font-bold font-mono">${totalEarned >= 0 ? '+' : ''}$${totalEarned.toFixed(2)}</span>
-            `;
-            logContainer.prepend(logItem);
+            if (logContainer) {
+                if (state.customersServed === 1) logContainer.innerHTML = '';
+                
+                const logItem = document.createElement('div');
+                logItem.className = 'flex justify-between items-center bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 text-slate-300';
+                logItem.innerHTML = `
+                    <span class="flex items-center gap-2">
+                        <i class="fa-solid ${isGoodPerformance ? 'fa-circle-check text-emerald-400' : 'fa-triangle-exclamation text-rose-400'}"></i>
+                        <span>Helped <strong>${state.currentCustomer.name}</strong> (${accuracy}% accuracy)</span>
+                    </span>
+                    <span class="${totalEarned >= 0 ? 'text-emerald-400' : 'text-rose-400'} font-bold font-mono">${totalEarned >= 0 ? '+' : ''}$${totalEarned.toFixed(2)}</span>
+                `;
+                logContainer.prepend(logItem);
+            }
 
             document.getElementById('stat-shift-hours').textContent = `${state.shiftHoursWorked} hrs`;
 
-            // Load Next Customer
             loadNextCustomer();
         }
 
+        // Emergency Loan Button
+        const btnEmergencyLoan = document.getElementById('btn-emergency-loan');
+        if (btnEmergencyLoan) {
+            btnEmergencyLoan.addEventListener('click', () => {
+                state.cash += 50;
+                updateHud();
+                playSfx('success');
+                showPerformanceToast(true, "Emergency Loan Granted!", "+$50.00 Advance");
+                btnEmergencyLoan.classList.add('hidden');
+            });
+        }
+
         // Retire Job Handler
-        document.getElementById('btn-retire-job').addEventListener('click', () => {
-            if (!confirm("Retire from your current job? Serving many customers boosts your Prestige Level and unlocks top tier jobs!")) return;
+        const btnRetireJob = document.getElementById('btn-retire-job');
+        if (btnRetireJob) {
+            btnRetireJob.addEventListener('click', () => {
+                if (!confirm("Retire from your current job? Serving many customers boosts your Prestige Level and unlocks top tier jobs!")) return;
 
-            playSfx('success');
-            state.prestige = Math.min(4, state.prestige + 1);
-            state.currentJob = null;
-            updateHud();
+                playSfx('success');
+                state.prestige = Math.min(4, state.prestige + 1);
+                state.currentJob = null;
+                updateHud();
 
-            document.getElementById('retire-notice').classList.remove('hidden');
-            renderPresetJobs();
-            showView('job-select');
-        });
+                const retireNotice = document.getElementById('retire-notice');
+                if (retireNotice) retireNotice.classList.remove('hidden');
+                renderPresetJobs();
+                showView('job-select');
+            });
+        }
 
         // Withdraw Application
-        document.getElementById('btn-withdraw-app').addEventListener('click', () => {
-            showView('job-select');
-        });
+        const btnWithdrawApp = document.getElementById('btn-withdraw-app');
+        if (btnWithdrawApp) {
+            btnWithdrawApp.addEventListener('click', () => {
+                showView('job-select');
+            });
+        }
 
         // Trigger Death / Life End
         function triggerDeath() {
@@ -1257,17 +1253,27 @@
             showView('job-select');
         }
 
-        document.getElementById('btn-reincarnate').addEventListener('click', restartLife);
-        document.getElementById('btn-restart-bankrupt').addEventListener('click', restartLife);
-        document.getElementById('btn-restart').addEventListener('click', () => {
-            if (confirm("Reset life and restart at age 18 with $1,000?")) restartLife();
-        });
+        const btnReincarnate = document.getElementById('btn-reincarnate');
+        if (btnReincarnate) btnReincarnate.addEventListener('click', restartLife);
+
+        const btnRestartBankrupt = document.getElementById('btn-restart-bankrupt');
+        if (btnRestartBankrupt) btnRestartBankrupt.addEventListener('click', restartLife);
+
+        const btnRestart = document.getElementById('btn-restart');
+        if (btnRestart) {
+            btnRestart.addEventListener('click', () => {
+                if (confirm("Reset life and restart at age 18 with $1,000?")) restartLife();
+            });
+        }
 
         // Sound Toggle
-        document.getElementById('btn-sound').addEventListener('click', () => {
-            state.soundEnabled = !state.soundEnabled;
-            document.getElementById('icon-sound').className = state.soundEnabled ? "fa-solid fa-volume-high text-xs" : "fa-solid fa-volume-xmark text-xs text-rose-400";
-        });
+        const btnSound = document.getElementById('btn-sound');
+        if (btnSound) {
+            btnSound.addEventListener('click', () => {
+                state.soundEnabled = !state.soundEnabled;
+                document.getElementById('icon-sound').className = state.soundEnabled ? "fa-solid fa-volume-high text-xs" : "fa-solid fa-volume-xmark text-xs text-rose-400";
+            });
+        }
 
         // Initialize on load
         window.addEventListener('DOMContentLoaded', () => {
