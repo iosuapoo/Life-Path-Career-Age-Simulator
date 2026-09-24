@@ -362,8 +362,25 @@
                         Loading customer request...
                     </div>
 
-                    <textarea id="work-typing-input" rows="3" placeholder="Type the resolution text above to help the customer..."
-                        class="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-slate-100 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none transition"></textarea>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <textarea id="work-typing-input" rows="3" placeholder="Type the resolution text above and press Enter (or click Submit)..."
+                            class="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-slate-100 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none transition flex-1"></textarea>
+                        
+                        <button id="btn-submit-customer-task" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold px-5 py-3 rounded-xl shadow-lg shadow-emerald-500/20 flex flex-col sm:flex-row items-center justify-center gap-2 transition active:scale-95 text-xs sm:text-sm sm:w-auto w-full">
+                            <i class="fa-solid fa-circle-check text-base"></i>
+                            <span>Submit & Collect Payment</span>
+                        </button>
+                    </div>
+                    <div class="flex flex-wrap justify-between items-center gap-2">
+                        <p id="typing-instruction-hint" class="text-xs text-slate-400 flex items-center gap-1">
+                            <i class="fa-solid fa-circle-info text-cyan-400"></i>
+                            <span>Press <kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono border border-slate-700">Enter</kbd> or click Submit to finish and collect payment.</span>
+                        </p>
+                        <p id="typing-error-notice" class="text-xs text-rose-400 font-bold hidden flex items-center gap-1">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span id="typing-error-msg">Please complete typing the full text before submitting!</span>
+                        </p>
+                    </div>
                 </div>
 
                 <!-- Shift Activity Log -->
@@ -462,6 +479,103 @@
             performanceMoney: 0,
             patience: 100
         };
+
+        // Tailored Interview Questions Repository per Job / Career Path
+        const JOB_INTERVIEW_QUESTIONS = {
+            'Barista / Cafe Associate': [
+                "How do you maintain drink quality and friendly service during peak morning rush hours?",
+                "How do you handle a situation where a customer is dissatisfied with their drink order?"
+            ],
+            'Cashier & Customer Service': [
+                "How do you resolve customer complaints smoothly while maintaining store policy?",
+                "What strategies do you use to ensure quick and accurate transactions when there is a long queue?"
+            ],
+            'Delivery Driver': [
+                "How do you plan your route efficiently when facing unexpected traffic or bad weather?",
+                "What steps do you take to guarantee package safety and verification upon arrival?"
+            ],
+            'Software Developer': [
+                "How do you approach debugging complex software bugs or payment integration errors under tight deadlines?",
+                "How do you ensure code readability and collaborate effectively with non-technical team members?"
+            ],
+            'Registered Nurse': [
+                "How do you prioritize patient care when responding to multiple urgent medical calls?",
+                "How do you maintain empathy and focus during long, demanding shifts?"
+            ],
+            'Graphic Designer': [
+                "How do you translate a client's vague vision into a polished, professional design?",
+                "How do you handle client feedback that requests major changes close to a deadline?"
+            ],
+            'Data Scientist & AI Specialist': [
+                "How do you evaluate dataset quality and prevent bias when training AI models?",
+                "How do you explain technical model findings to business executives in simple terms?"
+            ],
+            'Corporate Attorney / Lawyer': [
+                "How do you evaluate legal risk when reviewing complex business contracts?",
+                "How do you maintain client confidentiality and professional ethics under high pressure?"
+            ],
+            'Architectural Engineer': [
+                "How do you balance structural safety requirements with creative architectural designs?",
+                "What steps do you take when construction plans encounter unexpected site obstacles?"
+            ],
+            'Chief Executive Officer (CEO)': [
+                "What strategic factors do you consider before expanding into new markets or launching new product lines?",
+                "How do you build alignment and strong performance across executive team leaders?"
+            ],
+            'Commercial Airline Pilot': [
+                "How do you handle pre-flight safety checks and decision-making during severe weather conditions?",
+                "How do you ensure clear communication and calm leadership in the cockpit during inflight events?"
+            ],
+            'Neurosurgeon Specialist': [
+                "How do you prepare mentally and technically for delicate, high-risk surgical procedures?",
+                "How do you clearly explain complex surgical risks and treatment plans to patients?"
+            ]
+        };
+
+        // Function to Retrieve or Dynamically Generate Job-Specific Questions
+        function getInterviewQuestionsForJob(jobTitle) {
+            if (JOB_INTERVIEW_QUESTIONS[jobTitle]) {
+                return JOB_INTERVIEW_QUESTIONS[jobTitle];
+            }
+
+            const clean = jobTitle.toLowerCase();
+            if (clean.includes('doctor') || clean.includes('physician') || clean.includes('surgeon')) {
+                return [
+                    `How do you prioritize patient safety and diagnostic accuracy when treating high-priority cases as a ${jobTitle}?`,
+                    `How do you explain medical procedures clearly so patients feel comfortable and informed?`
+                ];
+            }
+            if (clean.includes('chef') || clean.includes('cook') || clean.includes('baker')) {
+                return [
+                    `How do you ensure kitchen speed, quality control, and food safety standards during peak hours?`,
+                    `How do you handle special dietary requests or customer complaints regarding food preparation?`
+                ];
+            }
+            if (clean.includes('teacher') || clean.includes('professor') || clean.includes('tutor')) {
+                return [
+                    `How do you adapt your teaching methodology to help students who learn at different paces?`,
+                    `How do you maintain engagement and positive communication with both students and parents?`
+                ];
+            }
+            if (clean.includes('engineer') || clean.includes('developer') || clean.includes('tech')) {
+                return [
+                    `How do you approach solving unexpected technical glitches or system architecture challenges in a ${jobTitle} role?`,
+                    `How do you document your workflow so team members can easily collaborate with you?`
+                ];
+            }
+            if (clean.includes('artist') || clean.includes('designer') || clean.includes('writer') || clean.includes('creator')) {
+                return [
+                    `How do you translate client requests into creative deliverables that exceed expectations?`,
+                    `How do you handle constructive criticism or tight revision deadlines?`
+                ];
+            }
+
+            // Fallback dynamic questions generated specifically with job title
+            return [
+                `Why are you passionate about pursuing a career as a ${jobTitle}, and what core skills make you ideal for this role?`,
+                `When faced with a demanding client or challenging task as a ${jobTitle}, what specific steps do you take to resolve it?`
+            ];
+        }
 
         // Recognized Job Keywords & Suffixes Dictionary for Validation
         const KNOWN_JOB_TITLES = [
@@ -746,7 +860,9 @@
 
             playSfx('click');
             state.cash -= cost;
-            state.interviewJob = { title, cost, tier, icon, baseSalary, tierNum };
+
+            const questions = getInterviewQuestionsForJob(title);
+            state.interviewJob = { title, cost, tier, icon, baseSalary, tierNum, questions };
             state.interviewStep = 1;
             updateHud();
 
@@ -760,7 +876,7 @@
             chat.innerHTML = '';
             showView('interview');
 
-            appendChatMessage('interviewer', `Hello! Welcome to your interview for the **${title}** position.\n\n**Question 1:** Why are you passionate about working as a ${title}, and how do you plan to handle customer/client requests?`);
+            appendChatMessage('interviewer', `Hello! Welcome to your interview for the **${title}** position.\n\n**Question 1:** ${questions[0]}`);
         }
 
         function appendChatMessage(sender, text) {
@@ -783,13 +899,47 @@
             chat.scrollTop = chat.scrollHeight;
         }
 
-        // Evaluate Answer Logic
+        // Evaluate Answer Logic based on Explanation Quality rather than Raw Word Count
         async function evaluateAnswer(jobTitle, step, userText) {
-            const words = userText.trim().split(/\s+/).length;
-            if (words < 4 || userText.toLowerCase().includes("idk") || userText.toLowerCase().includes("whatever")) {
-                return { verdict: "BAD", feedback: "Your response lacked motivation and customer dedication." };
+            const clean = userText.trim().toLowerCase();
+            
+            // Check for evasive or non-explanatory low effort responses
+            const evasiveWords = ['idk', 'whatever', 'no idea', 'dunno', 'pass', 'asdf', 'qwerty', 'nothing', 'no', 'none', 'dont know', "don't know", 'idbc', 'idc'];
+            const isEvasive = evasiveWords.some(e => clean === e || clean.startsWith(e + ' '));
+
+            if (isEvasive || clean.length < 3) {
+                return {
+                    verdict: "BAD",
+                    feedback: "Your response was dismissive or evasive instead of providing a reasoned explanation."
+                };
             }
-            return { verdict: "GOOD", feedback: "Impressive answer! Demonstrates great customer care and expertise." };
+
+            // Explanatory keywords indicating reasoning, method, action, care, or solution
+            const explanationTerms = [
+                'because', 'by', 'will', 'ensure', 'help', 'solve', 'check', 'care', 'listen', 'quality',
+                'fast', 'analyze', 'plan', 'patient', 'client', 'code', 'fix', 'safety', 'focus', 'work',
+                'team', 'review', 'deliver', 'manage', 'process', 'communicate', 'verify', 'study',
+                'strategy', 'support', 'trust', 'explain', 'understand', 'resolve', 'best', 'handle',
+                'service', 'priority', 'clear', 'testing', 'efficient', 'design', 'protect', 'value',
+                'experience', 'dedication', 'skill', 'professional', 'follow', 'solution', 'step', 'action'
+            ];
+
+            const matchesExplanation = explanationTerms.some(term => clean.includes(term));
+            const jobWords = jobTitle.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+            const mentionsDomain = jobWords.some(jw => clean.includes(jw));
+            const hasExplanatoryStructure = clean.includes('i would') || clean.includes('i will') || clean.includes('by ') || clean.includes('to ensure') || clean.includes('i prioritize') || clean.includes('i focus');
+
+            if (matchesExplanation || mentionsDomain || hasExplanatoryStructure) {
+                return {
+                    verdict: "GOOD",
+                    feedback: `Strong explanation! You demonstrated a clear approach and practical reasoning for a ${jobTitle}.`
+                };
+            }
+
+            return {
+                verdict: "BAD",
+                feedback: `Your answer lacked an explanation of how or why you would perform the job duties as a ${jobTitle}.`
+            };
         }
 
         // Interview Form Submit
@@ -816,7 +966,8 @@
             if (state.interviewStep === 1) {
                 state.interviewStep = 2;
                 document.getElementById('interview-q-step').textContent = '2';
-                appendChatMessage('interviewer', ` Great answer! Now for **Question 2:** How do you ensure high customer satisfaction when dealing with a demanding client?`);
+                const q2 = state.interviewJob.questions ? state.interviewJob.questions[1] : `How do you ensure customer satisfaction as a ${state.interviewJob.title}?`;
+                appendChatMessage('interviewer', `Great explanation! Now for **Question 2:** ${q2}`);
             } else {
                 playSfx('success');
                 state.currentJob = state.interviewJob;
@@ -940,91 +1091,124 @@
             const accuracyEl = document.getElementById('stat-writing-accuracy');
             accuracyEl.textContent = `${accuracy}% ${accuracy >= 90 ? 'High Quality' : accuracy >= 75 ? 'Average' : 'Poor Quality'}`;
             accuracyEl.className = accuracy >= 90 ? 'text-xs font-bold text-emerald-400 mt-1' : accuracy >= 75 ? 'text-xs font-bold text-amber-400 mt-1' : 'text-xs font-bold text-rose-400 mt-1';
+        });
 
-            // Completed Helping Customer - Evaluate Overall Writing Performance!
-            if (typed === target) {
-                const totalElapsedSeconds = (Date.now() - state.typingStartTime) / 1000;
-                
-                // Determine performance impact based on accuracy & typing errors
-                let perfDelta = 0;
-                let payRateChange = 0;
-                let ratingChange = 0;
-                let isGoodPerformance = false;
-
-                if (accuracy >= 92 && state.errorCount <= 2) {
-                    // Excellent Writing Performance
-                    isGoodPerformance = true;
-                    perfDelta = Math.round(state.currentTaskPayout * 0.5) + 15; // Performance Money Bonus
-                    payRateChange = 0.50; // Hourly Raise
-                    ratingChange = 0.2;
-                    playSfx('success');
-                    showPerformanceToast(true, "EXCELLENT WRITING! High accuracy earned bonus money & pay raise!", `+${perfDelta.toFixed(2)} Performance Bonus`);
-                } else if (accuracy >= 80) {
-                    // Good/Standard Writing Performance
-                    isGoodPerformance = true;
-                    perfDelta = Math.round(state.currentTaskPayout * 0.2); // Small Bonus
-                    payRateChange = 0.15;
-                    ratingChange = 0.05;
-                    playSfx('success');
-                    showPerformanceToast(true, "GOOD PERFORMANCE! Solid response quality.", `+${perfDelta.toFixed(2)} Bonus`);
-                } else {
-                    // Poor Writing / Too Many Mistakes
-                    isGoodPerformance = false;
-                    perfDelta = -Math.round(state.currentTaskPayout * 0.35); // Quality Penalty
-                    payRateChange = -0.40; // Pay Cut
-                    ratingChange = -0.3;
-                    playSfx('fail');
-                    showPerformanceToast(false, "POOR WRITING QUALITY! Mistakes lowered your performance money & pay rate.", `${perfDelta.toFixed(2)} Quality Penalty`);
-                }
-
-                // Update Performance Stats
-                state.performanceMoney += perfDelta;
-                state.currentPayRate = Math.max(5.00, state.currentPayRate + payRateChange);
-                state.rating = Math.min(5.0, Math.max(1.0, state.rating + ratingChange));
-
-                const totalEarned = Math.max(5, state.currentTaskPayout + perfDelta + state.currentPayRate);
-                state.cash = Math.max(0, state.cash + totalEarned);
-                state.totalEarnings += Math.max(0, totalEarned);
-                state.customersServed++;
-                state.shiftHoursWorked += 2;
-                state.customerQueueCount = Math.max(1, state.customerQueueCount + Math.floor(Math.random() * 2) - 1);
-
-                // Advance Age slightly (every 10 customers = +1 Year)
-                if (state.customersServed % 10 === 0) {
-                    state.age++;
-                }
-
-                // Update UI HUD & Stats
-                document.getElementById('work-pay-rate-badge').textContent = `Rate: $${state.currentPayRate.toFixed(2)} / hr`;
-                document.getElementById('stat-shift-rating').textContent = `${state.rating.toFixed(1)} ⭐`;
-                
-                const perfMoneyEl = document.getElementById('stat-performance-money');
-                perfMoneyEl.textContent = `${state.performanceMoney >= 0 ? '+' : ''}$${state.performanceMoney.toFixed(2)}`;
-                perfMoneyEl.className = state.performanceMoney >= 0 ? "text-lg font-bold font-mono text-emerald-400" : "text-lg font-bold font-mono text-rose-400";
-
-                updateHud();
-
-                // Append to Customer History Log
-                const logContainer = document.getElementById('work-history-log');
-                if (state.customersServed === 1) logContainer.innerHTML = '';
-                
-                const logItem = document.createElement('div');
-                logItem.className = 'flex justify-between items-center bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 text-slate-300';
-                logItem.innerHTML = `
-                    <span class="flex items-center gap-2">
-                        <i class="fa-solid ${isGoodPerformance ? 'fa-circle-check text-emerald-400' : 'fa-triangle-exclamation text-rose-400'}"></i>
-                        <span>Helped <strong>${state.currentCustomer.name}</strong> (${accuracy}% accuracy)</span>
-                    </span>
-                    <span class="${totalEarned >= 0 ? 'text-emerald-400' : 'text-rose-400'} font-bold font-mono">${totalEarned >= 0 ? '+' : ''}$${totalEarned.toFixed(2)}</span>
-                `;
-                logContainer.prepend(logItem);
-
-                document.getElementById('stat-shift-hours').textContent = `${state.shiftHoursWorked} hrs`;
-
-                // Load Next Customer
-                loadNextCustomer();
+        // Keydown Handler for Enter Key to Submit Customer Resolution
+        document.getElementById('work-typing-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                submitCustomerTask();
             }
         });
+
+        // Button Handler for Manual Submit & Collect Payment
+        document.getElementById('btn-submit-customer-task').addEventListener('click', () => {
+            submitCustomerTask();
+        });
+
+        // Process Customer Payment & Advance Task
+        function submitCustomerTask() {
+            const inputEl = document.getElementById('work-typing-input');
+            const typed = inputEl.value.trim();
+            const target = state.currentPromptText.trim();
+            const errNotice = document.getElementById('typing-error-notice');
+
+            if (typed !== target) {
+                if (errNotice) {
+                    errNotice.classList.remove('hidden');
+                    document.getElementById('typing-error-msg').textContent = typed.length < target.length 
+                        ? "Please finish typing the full text before submitting!" 
+                        : "Your text doesn't match the customer request! Please check for typos.";
+                    setTimeout(() => errNotice.classList.add('hidden'), 3500);
+                }
+                playSfx('fail');
+                return;
+            }
+
+            if (errNotice) errNotice.classList.add('hidden');
+
+            const totalElapsedSeconds = state.typingStartTime ? (Date.now() - state.typingStartTime) / 1000 : 5;
+            const accuracy = typed.length > 0 ? Math.max(0, Math.floor(((typed.length - state.errorCount) / typed.length) * 100)) : 100;
+            
+            // Determine performance impact based on accuracy & typing errors
+            let perfDelta = 0;
+            let payRateChange = 0;
+            let ratingChange = 0;
+            let isGoodPerformance = false;
+
+            if (accuracy >= 92 && state.errorCount <= 2) {
+                // Excellent Writing Performance
+                isGoodPerformance = true;
+                perfDelta = Math.round(state.currentTaskPayout * 0.5) + 15; // Performance Money Bonus
+                payRateChange = 0.50; // Hourly Raise
+                ratingChange = 0.2;
+                playSfx('success');
+                showPerformanceToast(true, "EXCELLENT SERVICE! Response submitted and payment collected!", `+${perfDelta.toFixed(2)} Bonus`);
+            } else if (accuracy >= 80) {
+                // Good/Standard Writing Performance
+                isGoodPerformance = true;
+                perfDelta = Math.round(state.currentTaskPayout * 0.2); // Small Bonus
+                payRateChange = 0.15;
+                ratingChange = 0.05;
+                playSfx('success');
+                showPerformanceToast(true, "CUSTOMER SATISFIED! Response submitted and payment collected.", `+${perfDelta.toFixed(2)} Bonus`);
+            } else {
+                // Poor Writing / Too Many Mistakes
+                isGoodPerformance = false;
+                perfDelta = -Math.round(state.currentTaskPayout * 0.35); // Quality Penalty
+                payRateChange = -0.40; // Pay Cut
+                ratingChange = -0.3;
+                playSfx('fail');
+                showPerformanceToast(false, "CUSTOMER DISSATISFIED! Typing mistakes lowered your payment.", `${perfDelta.toFixed(2)} Quality Penalty`);
+            }
+
+            // Update Performance Stats
+            state.performanceMoney += perfDelta;
+            state.currentPayRate = Math.max(5.00, state.currentPayRate + payRateChange);
+            state.rating = Math.min(5.0, Math.max(1.0, state.rating + ratingChange));
+
+            const totalEarned = Math.max(5, state.currentTaskPayout + perfDelta + state.currentPayRate);
+            state.cash = Math.max(0, state.cash + totalEarned);
+            state.totalEarnings += Math.max(0, totalEarned);
+            state.customersServed++;
+            state.shiftHoursWorked += 2;
+            state.customerQueueCount = Math.max(1, state.customerQueueCount + Math.floor(Math.random() * 2) - 1);
+
+            // Advance Age slightly (every 10 customers = +1 Year)
+            if (state.customersServed % 10 === 0) {
+                state.age++;
+            }
+
+            // Update UI HUD & Stats
+            document.getElementById('work-pay-rate-badge').textContent = `Rate: $${state.currentPayRate.toFixed(2)} / hr`;
+            document.getElementById('stat-shift-rating').textContent = `${state.rating.toFixed(1)} ⭐`;
+            
+            const perfMoneyEl = document.getElementById('stat-performance-money');
+            perfMoneyEl.textContent = `${state.performanceMoney >= 0 ? '+' : ''}$${state.performanceMoney.toFixed(2)}`;
+            perfMoneyEl.className = state.performanceMoney >= 0 ? "text-lg font-bold font-mono text-emerald-400" : "text-lg font-bold font-mono text-rose-400";
+
+            updateHud();
+
+            // Append to Customer History Log
+            const logContainer = document.getElementById('work-history-log');
+            if (state.customersServed === 1) logContainer.innerHTML = '';
+            
+            const logItem = document.createElement('div');
+            logItem.className = 'flex justify-between items-center bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 text-slate-300';
+            logItem.innerHTML = `
+                <span class="flex items-center gap-2">
+                    <i class="fa-solid ${isGoodPerformance ? 'fa-circle-check text-emerald-400' : 'fa-triangle-exclamation text-rose-400'}"></i>
+                    <span>Helped <strong>${state.currentCustomer.name}</strong> (${accuracy}% accuracy)</span>
+                </span>
+                <span class="${totalEarned >= 0 ? 'text-emerald-400' : 'text-rose-400'} font-bold font-mono">${totalEarned >= 0 ? '+' : ''}$${totalEarned.toFixed(2)}</span>
+            `;
+            logContainer.prepend(logItem);
+
+            document.getElementById('stat-shift-hours').textContent = `${state.shiftHoursWorked} hrs`;
+
+            // Load Next Customer
+            loadNextCustomer();
+        }
 
         // Retire Job Handler
         document.getElementById('btn-retire-job').addEventListener('click', () => {
