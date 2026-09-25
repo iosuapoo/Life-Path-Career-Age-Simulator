@@ -151,7 +151,7 @@
                 </span>
                 <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-100 tracking-tight">Select or Type Any Career Path</h2>
                 <p class="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto">
-                    Choose a career to apply for! Assist waiting customers/clients, perform well, and increase your prestige to unlock top-tier roles.
+                    Choose a career to apply for! Respond responsibly to client requests to earn high ratings, extra performance bonuses, and career promotions.
                 </p>
             </div>
 
@@ -255,7 +255,7 @@
                     </div>
 
                     <form id="interview-form" class="flex gap-2">
-                        <textarea id="user-response-input" rows="2" placeholder="Type your answer or click a suggestion above..." 
+                        <textarea id="user-response-input" rows="2" placeholder="Type a professional answer or click a suggestion above..." 
                             class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm resize-none" required></textarea>
                         
                         <button type="submit" id="btn-submit-answer" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold px-5 rounded-xl shadow-lg shadow-emerald-500/20 flex flex-col items-center justify-center gap-1 transition active:scale-95 disabled:opacity-50">
@@ -278,7 +278,7 @@
                             Rate: $10.00 / hr
                         </span>
                     </div>
-                    <p class="text-xs text-slate-400 mt-1">Type any response to resolve client requests! Accuracy restrictions are disabled, so all answers earn top performance rewards.</p>
+                    <p class="text-xs text-slate-400 mt-1">Provide a polite, responsible, and helpful response to resolve each customer request! Unprofessional, rude, or spam responses will be rejected.</p>
                 </div>
 
                 <div class="flex items-center gap-3">
@@ -311,8 +311,8 @@
                     <div id="stat-shift-rating" class="text-lg font-bold font-mono text-amber-400">5.0 ⭐</div>
                 </div>
                 <div class="glass-panel p-3 rounded-xl border border-slate-800 text-center">
-                    <div class="text-[10px] uppercase font-semibold text-slate-400">Writing Accuracy</div>
-                    <div id="stat-writing-accuracy" class="text-xs font-bold text-emerald-400 mt-1">100% Perfect</div>
+                    <div class="text-[10px] uppercase font-semibold text-slate-400">Response Responsibility</div>
+                    <div id="stat-writing-accuracy" class="text-xs font-bold text-emerald-400 mt-1">Responsible</div>
                 </div>
                 <div class="glass-panel p-3 rounded-xl border border-slate-800 text-center">
                     <div class="text-[10px] uppercase font-semibold text-slate-400">Performance Money</div>
@@ -362,10 +362,21 @@
                 </div>
 
                 <!-- Text to type to help customer -->
-                <div class="space-y-2">
-                    <div class="flex justify-between items-center text-xs font-semibold text-slate-400">
-                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-keyboard text-emerald-400"></i> Type your response to help this customer:</span>
-                        <span id="work-typing-progress" class="font-mono text-cyan-400">0% Completed</span>
+                <div class="space-y-3">
+                    <div class="flex flex-wrap justify-between items-center text-xs font-semibold text-slate-400 gap-2">
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-user-check text-emerald-400"></i> Respond politely & responsibly to help this customer:</span>
+                        <span id="work-typing-progress" class="font-mono text-cyan-400">Quality: Evaluating...</span>
+                    </div>
+
+                    <!-- Quick Responsible Customer Response Templates -->
+                    <div id="responsible-templates-container" class="space-y-1.5 bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+                        <div class="text-[11px] font-semibold text-cyan-400 flex items-center gap-1.5">
+                            <i class="fa-solid fa-handshake-angle"></i>
+                            <span>Suggested Responsible Responses (Click to Auto-Fill):</span>
+                        </div>
+                        <div id="responsible-template-chips" class="flex flex-wrap gap-2">
+                            <!-- Populated dynamically by JS -->
+                        </div>
                     </div>
 
                     <div id="work-target-text" class="p-4 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 font-mono text-sm leading-relaxed tracking-wide select-none">
@@ -373,12 +384,12 @@
                     </div>
 
                     <div class="flex flex-col sm:flex-row gap-2">
-                        <textarea id="work-typing-input" rows="3" placeholder="Type a detailed, helpful response to answer the customer request and press Enter..."
+                        <textarea id="work-typing-input" rows="3" placeholder="Type a polite, responsible, and detailed response to resolve this customer's request (e.g. 'Hello! I am happy to assist you with your request right away...')."
                             class="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-slate-100 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none transition flex-1"></textarea>
                         
                         <button id="btn-submit-customer-task" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold px-5 py-3 rounded-xl shadow-lg shadow-emerald-500/20 flex flex-col sm:flex-row items-center justify-center gap-2 transition active:scale-95 text-xs sm:text-sm sm:w-auto w-full">
                             <i class="fa-solid fa-circle-check text-base"></i>
-                            <span>Submit & Collect Payment</span>
+                            <span>Submit Responsible Response</span>
                         </button>
                     </div>
 
@@ -391,19 +402,19 @@
                         </div>
                         <div class="flex items-center gap-2">
                             <i class="fa-solid fa-sack-dollar text-emerald-400"></i>
-                            <span class="text-slate-400 font-semibold">How much it will be:</span>
+                            <span class="text-slate-400 font-semibold">Expected Payout:</span>
                             <span id="job-payout-status" class="font-mono text-emerald-400 font-bold">+$0.00</span>
                         </div>
                     </div>
 
                     <div class="flex flex-wrap justify-between items-center gap-2">
-                        <p id="typing-instruction-hint" class="text-xs text-amber-400 flex items-center gap-1 font-medium">
-                            <i class="fa-solid fa-pen-nib text-amber-400"></i>
-                            <span>Write a decent response (at least 15+ characters / 3+ words) to satisfy the customer and get paid!</span>
+                        <p id="typing-instruction-hint" class="text-xs text-slate-400 flex items-center gap-1 font-medium">
+                            <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+                            <span>Responses must be respectful, helpful, and relevant. Rude, dismissive, or spam text will be rejected by the customer!</span>
                         </p>
-                        <p id="typing-error-notice" class="text-xs text-rose-400 font-bold hidden flex items-center gap-1">
-                            <i class="fa-solid fa-triangle-exclamation"></i>
-                            <span id="typing-error-msg">Please write a decent response before submitting!</span>
+                        <p id="typing-error-notice" class="text-xs text-rose-400 font-bold hidden flex items-center gap-1 bg-rose-500/10 border border-rose-500/20 p-2 rounded-lg">
+                            <i class="fa-solid fa-triangle-exclamation text-rose-400 text-sm"></i>
+                            <span id="typing-error-msg">Please write a responsible response before submitting!</span>
                         </p>
                     </div>
                 </div>
@@ -411,7 +422,7 @@
                 <!-- Shift Activity Log -->
                 <div class="pt-3 border-t border-slate-800/80">
                     <div class="text-xs font-bold text-slate-400 mb-2 flex items-center gap-1.5">
-                        <i class="fa-solid fa-clock-rotate-left text-cyan-400"></i> Served Customers History:
+                        <i class="fa-solid fa-clock-rotate-left text-cyan-400"></i> Customer Service History:
                     </div>
                     <div id="work-history-log" class="space-y-1.5 max-h-32 overflow-y-auto text-xs font-mono text-slate-400">
                         <div class="text-slate-600 italic">No customers helped yet this shift. Waiting for your first customer!</div>
@@ -486,28 +497,138 @@
             { title: 'Chief Executive Officer (CEO)', cost: 500, tier: 'Executive', tierNum: 4, baseSalary: 65, icon: 'fa-crown', desc: 'Drive corporate strategy, consult board members, and expand company market capital.' }
         ];
 
-        // Customer Requests Data Catalog
+        // Customer Requests Data Catalog with Custom Responsible Suggested Templates
         const CUSTOMER_REQUESTS = {
             'Fast Food Cashier': [
-                { name: 'David Miller', badge: 'Regular', request: 'I would like a double cheeseburger with extra fries and a large soda please.', payout: 25, icon: 'fa-user' },
-                { name: 'Emma Watson', badge: 'VIP Customer', request: 'Can I order a grilled chicken combo meal with a vanilla milkshake?', payout: 35, icon: 'fa-user-tie' }
+                { 
+                    name: 'David Miller', 
+                    badge: 'Regular', 
+                    request: 'I would like a double cheeseburger with extra fries and a large soda please.', 
+                    payout: 25, 
+                    icon: 'fa-user',
+                    suggestions: [
+                        "Hello! I will get your double cheeseburger, extra fries, and large soda ready for you right away. Thank you for visiting!",
+                        "Sure thing! Let me enter that order for a double cheeseburger combo with fries and a large soda. That will be ready shortly!"
+                    ]
+                },
+                { 
+                    name: 'Emma Watson', 
+                    badge: 'VIP Customer', 
+                    request: 'Can I order a grilled chicken combo meal with a vanilla milkshake?', 
+                    payout: 35, 
+                    icon: 'fa-user-tie',
+                    suggestions: [
+                        "Certainly! One grilled chicken combo meal with a fresh vanilla milkshake coming right up. Have a wonderful day!",
+                        "Absolutely! I've placed your grilled chicken combo order and made sure your vanilla milkshake is prepared fresh."
+                    ]
+                }
             ],
             'Coffee Barista': [
-                { name: 'Alex Rivera', badge: 'Morning Express', request: 'One large oat milk iced latte with two pumps of caramel syrup to go.', payout: 30, icon: 'fa-mug-saucer' },
-                { name: 'Sophia Chen', badge: 'Regular', request: 'A hot cappuccino with cinnamon sprinkle and a toasted blueberry bagel.', payout: 28, icon: 'fa-user-graduate' }
+                { 
+                    name: 'Alex Rivera', 
+                    badge: 'Morning Express', 
+                    request: 'One large oat milk iced latte with two pumps of caramel syrup to go.', 
+                    payout: 30, 
+                    icon: 'fa-mug-saucer',
+                    suggestions: [
+                        "Good morning! I am crafting your large oat milk iced latte with caramel syrup now. Thanks for stopping by!",
+                        "Right away! I will make sure your iced oat milk latte with two caramel pumps is served fresh and cold."
+                    ]
+                },
+                { 
+                    name: 'Sophia Chen', 
+                    badge: 'Regular', 
+                    request: 'A hot cappuccino with cinnamon sprinkle and a toasted blueberry bagel.', 
+                    payout: 28, 
+                    icon: 'fa-user-graduate',
+                    suggestions: [
+                        "I'll prepare a warm cappuccino topped with cinnamon and get your blueberry bagel toasted perfectly right away!",
+                        "Welcome! I am glad to help. Your hot cappuccino with cinnamon and toasted blueberry bagel will be ready in a moment."
+                    ]
+                }
             ],
             'Junior Software Engineer': [
-                { name: 'Tech Solutions Inc.', badge: 'Client Ticket', request: 'Our payment checkout API is returning a 500 error. Please debug the backend endpoint.', payout: 75, icon: 'fa-server' },
-                { name: 'E-Commerce Corp', badge: 'Urgent Task', request: 'Build a dark mode toggle button and test responsiveness across mobile screens.', payout: 90, icon: 'fa-code-branch' }
+                { 
+                    name: 'Tech Solutions Inc.', 
+                    badge: 'Client Ticket', 
+                    request: 'Our payment checkout API is returning a 500 error. Please debug the backend endpoint.', 
+                    payout: 75, 
+                    icon: 'fa-server',
+                    suggestions: [
+                        "I am inspecting the backend logs and database connections immediately to patch the 500 API error on checkout.",
+                        "Understood! I will run a thorough bug trace on the checkout endpoint and deploy a patch right away to restore service."
+                    ]
+                },
+                { 
+                    name: 'E-Commerce Corp', 
+                    badge: 'Urgent Task', 
+                    request: 'Build a dark mode toggle button and test responsiveness across mobile screens.', 
+                    payout: 90, 
+                    icon: 'fa-code-branch',
+                    suggestions: [
+                        "I will implement the CSS dark mode theme toggle and conduct cross-device testing to ensure seamless mobile layout.",
+                        "I'm on it! I'll add the accessible dark mode toggle and verify full responsive scaling on all mobile viewports."
+                    ]
+                }
             ],
             'Medical Doctor / Surgeon': [
-                { name: 'James Parker', badge: 'ER Patient', request: 'Patient experiencing chest tightness and elevated blood pressure. Conduct an ECG right away.', payout: 120, icon: 'fa-heart-pulse' },
-                { name: 'Olivia Taylor', badge: 'Outpatient', request: 'I need a comprehensive prescription review and seasonal allergy diagnosis.', payout: 100, icon: 'fa-stethoscope' }
+                { 
+                    name: 'James Parker', 
+                    badge: 'ER Patient', 
+                    request: 'Patient experiencing chest tightness and elevated blood pressure. Conduct an ECG right away.', 
+                    payout: 120, 
+                    icon: 'fa-heart-pulse',
+                    suggestions: [
+                        "I am administering an immediate ECG and monitoring vital signs to safely evaluate chest tightness and blood pressure.",
+                        "Please remain calm. I am ordering an emergency ECG and stabilizing your blood pressure under close medical supervision."
+                    ]
+                },
+                { 
+                    name: 'Olivia Taylor', 
+                    badge: 'Outpatient', 
+                    request: 'I need a comprehensive prescription review and seasonal allergy diagnosis.', 
+                    payout: 100, 
+                    icon: 'fa-stethoscope',
+                    suggestions: [
+                        "I will review your current medication list in detail and prescribe safe, effective relief for your seasonal allergy symptoms.",
+                        "Let's conduct a full review of your prescriptions to check for potential interactions and select the best allergy treatment plan."
+                    ]
+                }
             ],
             'Default': [
-                { name: 'Sarah Jenkins', badge: 'Regular Client', request: 'Hello! I need assistance regarding my recent account request and order update.', payout: 55, icon: 'fa-user' },
-                { name: 'Michael Scott', badge: 'Corporate Director', request: 'Please deliver the quarterly performance report and summarize key client milestones.', payout: 80, icon: 'fa-briefcase' },
-                { name: 'Elena Rostova', badge: 'Priority Client', request: 'We need urgent consultation to resolve our ongoing service inquiry today.', payout: 95, icon: 'fa-building' }
+                { 
+                    name: 'Sarah Jenkins', 
+                    badge: 'Regular Client', 
+                    request: 'Hello! I need assistance regarding my recent account request and order update.', 
+                    payout: 55, 
+                    icon: 'fa-user',
+                    suggestions: [
+                        "Hello Sarah! I am glad to assist you. I am looking up your account and order status right now to resolve this for you.",
+                        "Good day! Thank you for reaching out. Let me review your recent order details and provide a comprehensive update immediately."
+                    ]
+                },
+                { 
+                    name: 'Michael Scott', 
+                    badge: 'Corporate Director', 
+                    request: 'Please deliver the quarterly performance report and summarize key client milestones.', 
+                    payout: 80, 
+                    icon: 'fa-briefcase',
+                    suggestions: [
+                        "I have compiled the quarterly performance metrics and key client milestones into a clear executive summary for your review.",
+                        "Certainly! I am organizing the quarterly data and highlighting key client achievements to deliver a complete report shortly."
+                    ]
+                },
+                { 
+                    name: 'Elena Rostova', 
+                    badge: 'Priority Client', 
+                    request: 'We need urgent consultation to resolve our ongoing service inquiry today.', 
+                    payout: 95, 
+                    icon: 'fa-building',
+                    suggestions: [
+                        "Thank you for contacting us. I am prioritizing your consultation right now to provide a full resolution for your service inquiry.",
+                        "Hello Elena! I understand the urgency and am dedicating full attention to address your service inquiry promptly and thoroughly."
+                    ]
+                }
             ]
         };
 
@@ -952,6 +1073,117 @@
             showView('workplace');
         }
 
+        // Responsible Response Validation Engine
+        function validateResponsibleResponse(text, customer) {
+            const clean = text.trim();
+            const lower = clean.toLowerCase();
+            const words = clean ? clean.split(/\s+/) : [];
+
+            // 1. Length & Word count requirements
+            if (!clean || clean.length < 15 || words.length < 3) {
+                return {
+                    isValid: false,
+                    reason: "Customer rejected response: 'This response is too short! Please provide a clear, responsible sentence (at least 15+ characters and 3+ words).'",
+                    quality: 'Too Short'
+                };
+            }
+
+            // 2. Check for Spam / Keyboard Mash / Repetitive Gibberish
+            const repeatedCharsRegex = /(.)\1{4,}/; // e.g. "aaaaa" or "hhhhh"
+            if (repeatedCharsRegex.test(lower)) {
+                return {
+                    isValid: false,
+                    reason: "Customer rejected response: 'Please avoid keyboard mashing or spamming repeated letters. Provide a polite, meaningful response.'",
+                    quality: 'Gibberish/Spam'
+                };
+            }
+
+            // Check unique word ratio to prevent "test test test test test"
+            const uniqueWords = new Set(words.map(w => w.toLowerCase()));
+            if (words.length >= 4 && (uniqueWords.size / words.length) < 0.4) {
+                return {
+                    isValid: false,
+                    reason: "Customer rejected response: 'Please don't repeat the same word over and over. Provide a real, helpful response.'",
+                    quality: 'Repetitive'
+                };
+            }
+
+            // 3. Check for Rude, Irresponsible, Dismissive or Unprofessional Language
+            const rudeTerms = [
+                'don\'t care', 'dont care', 'not my problem', 'go away', 'whatever', 'shut up', 
+                'shut your', 'get lost', 'screw you', 'do it yourself', 'lazy', 'nah', 'idk', 
+                'hate you', 'no way', 'fool', 'stupid', 'dumb', 'scam', 'shove it', 'bye loser'
+            ];
+
+            for (const term of rudeTerms) {
+                if (lower.includes(term)) {
+                    return {
+                        isValid: false,
+                        reason: `Customer walked away offended! Response was unprofessional or rude (contained "${term}").`,
+                        quality: 'Rude / Irresponsible'
+                    };
+                }
+            }
+
+            // 4. Positive Responsibility Keywords Check (Friendly, helpful, accountable, or polite tone)
+            const responsibleKeywords = [
+                'help', 'assist', 'sorry', 'sure', 'order', 'please', 'thank', 'welcome', 
+                'fix', 'check', 'happy to', 'right away', 'solution', 'service', 'handle', 
+                'process', 'verify', 'deliver', 'support', 'care', 'update', 'understand',
+                'resolve', 'address', 'prepare', 'serve', 'pleasure', 'pardon'
+            ];
+
+            const matchesKeyword = responsibleKeywords.some(kw => lower.includes(kw));
+
+            if (!matchesKeyword && words.length < 6) {
+                return {
+                    isValid: false,
+                    reason: "Customer was confused! Please use responsible customer service words like 'help', 'assist', 'sure', 'right away', or 'thank you'.",
+                    quality: 'Irresponsible / Vague'
+                };
+            }
+
+            // Determine Quality Level
+            let quality = 'Responsible & Professional';
+            if (words.length >= 8 && matchesKeyword) {
+                quality = 'Exemplary Customer Service';
+            }
+
+            return {
+                isValid: true,
+                reason: "Customer satisfied with your responsible response!",
+                quality: quality
+            };
+        }
+
+        // Render Responsible Templates for Active Customer
+        function renderResponsibleTemplates(customer) {
+            const container = document.getElementById('responsible-template-chips');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const suggestions = customer.suggestions || [
+                `Hello ${customer.name}! I am happy to assist you with your request right away. Thank you for your patience!`,
+                `I understand your request regarding this order. Let me process that for you immediately to resolve it.`
+            ];
+
+            suggestions.forEach(text => {
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.className = 'bg-slate-800 hover:bg-emerald-600/30 text-emerald-300 hover:text-white border border-emerald-500/30 text-xs px-3 py-1.5 rounded-lg transition text-left truncate max-w-full font-sans';
+                chip.textContent = text;
+                chip.onclick = () => {
+                    const input = document.getElementById('work-typing-input');
+                    if (input) {
+                        input.value = text;
+                        input.dispatchEvent(new Event('input'));
+                    }
+                    playSfx('click');
+                };
+                container.appendChild(chip);
+            });
+        }
+
         // Load Next Customer Request
         function loadNextCustomer() {
             const jobTitle = state.currentJob.title;
@@ -979,7 +1211,9 @@
             document.getElementById('work-typing-input').value = '';
             document.getElementById('queue-badge').textContent = `${state.customerQueueCount} Waiting`;
             document.getElementById('stat-customers-count').textContent = state.customersServed;
-            document.getElementById('work-typing-progress').textContent = `0% Completed`;
+            document.getElementById('work-typing-progress').textContent = `Quality: Evaluating...`;
+
+            renderResponsibleTemplates(customer);
 
             const loanBtn = document.getElementById('btn-emergency-loan');
             if (loanBtn) {
@@ -1015,7 +1249,7 @@
             }, 4000);
         }
 
-        // Typing Listener
+        // Typing Listener with Real-time Responsibility Evaluator
         const workTypingInput = document.getElementById('work-typing-input');
         if (workTypingInput) {
             workTypingInput.addEventListener('input', (e) => {
@@ -1025,10 +1259,9 @@
                 const typed = e.target.value.trim();
                 const wordCount = typed ? typed.split(/\s+/).length : 0;
 
-                const progress = Math.min(100, Math.floor((typed.length / 20) * 100));
-                document.getElementById('work-typing-progress').textContent = `${progress}% Decent Quality (${wordCount} words)`;
+                const evalRes = validateResponsibleResponse(typed, state.currentCustomer);
 
-                state.errorCount = 0;
+                document.getElementById('work-typing-progress').textContent = `Quality: ${evalRes.quality}`;
 
                 const elapsedMins = (Date.now() - state.typingStartTime) / 60000;
                 const wpm = elapsedMins > 0 ? Math.floor((typed.length / 5) / elapsedMins) : 0;
@@ -1037,12 +1270,12 @@
 
                 const accuracyEl = document.getElementById('stat-writing-accuracy');
                 if (accuracyEl) {
-                    if (typed.length >= 15 && wordCount >= 3) {
-                        accuracyEl.textContent = `Decent & Valid`;
+                    if (evalRes.isValid) {
+                        accuracyEl.textContent = evalRes.quality;
                         accuracyEl.className = 'text-xs font-bold text-emerald-400 mt-1';
                     } else {
-                        accuracyEl.textContent = `Too Short`;
-                        accuracyEl.className = 'text-xs font-bold text-amber-400 mt-1';
+                        accuracyEl.textContent = evalRes.quality;
+                        accuracyEl.className = 'text-xs font-bold text-rose-400 mt-1';
                     }
                 }
             });
@@ -1070,32 +1303,38 @@
             const wordCount = typed ? typed.split(/\s+/).length : 0;
             const errNotice = document.getElementById('typing-error-notice');
 
-            // Require at least 15 characters and at least 3 words for a decent response
-            if (!typed || typed.length < 15 || wordCount < 3) {
+            const evalRes = validateResponsibleResponse(typed, state.currentCustomer);
+
+            // If response is NOT responsible / valid:
+            if (!evalRes.isValid) {
                 if (errNotice) {
                     errNotice.classList.remove('hidden');
-                    document.getElementById('typing-error-msg').textContent = "Customer rejected response: 'This response is too short! Please write a decent, helpful sentence to get paid.'";
-                    setTimeout(() => errNotice.classList.add('hidden'), 4500);
+                    document.getElementById('typing-error-msg').textContent = evalRes.reason;
+                    setTimeout(() => errNotice.classList.add('hidden'), 5500);
                 }
                 
-                // Small penalty for poor effort
-                state.rating = Math.max(1.0, state.rating - 0.1);
+                // Penalty for irresponsible, rude, or spam response
+                state.rating = Math.max(1.0, state.rating - 0.3);
                 document.getElementById('stat-shift-rating').textContent = `${state.rating.toFixed(1)} ⭐`;
-                showPerformanceToast(false, "Customer Unsatisfied! Response too short or vague.", "-0.1 ⭐ Rating");
+                showPerformanceToast(false, evalRes.reason, "-0.3 ⭐ Rating Penalty");
                 playSfx('fail');
                 return;
             }
 
             if (errNotice) errNotice.classList.add('hidden');
 
-            // Calculate bonus based on response detail
-            let detailBonus = Math.min(25, Math.floor(typed.length / 3));
+            // Calculate bonus based on response detail & exemplary responsibility
+            let detailBonus = Math.min(30, Math.floor(typed.length / 3));
+            if (evalRes.quality === 'Exemplary Customer Service') {
+                detailBonus += 15;
+            }
+
             let perfDelta = Math.round(state.currentTaskPayout * 0.5) + detailBonus;
             let payRateChange = 0.50;
             let ratingChange = 0.2;
 
             playSfx('success');
-            showPerformanceToast(true, `EXCELLENT RESPONSE! Customer satisfied and paid in full!`, `+$${(state.currentTaskPayout + perfDelta).toFixed(2)} Earned`);
+            showPerformanceToast(true, `RESPONSIBLE RESPONSE! Customer satisfied with your service!`, `+$${(state.currentTaskPayout + perfDelta).toFixed(2)} Earned`);
 
             state.performanceMoney += perfDelta;
             state.currentPayRate = Math.max(5.00, state.currentPayRate + payRateChange);
@@ -1132,7 +1371,7 @@
                 logItem.innerHTML = `
                     <span class="flex items-center gap-2">
                         <i class="fa-solid fa-circle-check text-emerald-400"></i>
-                        <span>Helped <strong>${state.currentCustomer.name}</strong> (${wordCount} words)</span>
+                        <span>Served <strong>${state.currentCustomer.name}</strong> (${evalRes.quality})</span>
                     </span>
                     <span class="text-emerald-400 font-bold font-mono">+$${totalEarned.toFixed(2)}</span>
                 `;
