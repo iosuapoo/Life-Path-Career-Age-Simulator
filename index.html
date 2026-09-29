@@ -582,6 +582,23 @@
 
             const lower = userText.toLowerCase();
 
+            // Detect random questions or off-topic conversational questions
+            const questionWords = ['what', 'why', 'where', 'who', 'when', 'how', 'which'];
+            const containsQuestion = lower.includes('?') || questionWords.some(qw => lower.startsWith(qw + ' '));
+            
+            const randomQuestionPhrases = [
+                'favorite color', 'where do you live', 'how old are you', 'do you like', 'what is your name',
+                'who are you', 'why are you here', 'what time is it', 'what is this', 'where is the bathroom',
+                'can i have money', 'are you single', 'what do you want to eat', 'is it raining', 'do you know'
+            ];
+
+            if (randomQuestionPhrases.some(phrase => lower.includes(phrase))) {
+                return {
+                    valid: false,
+                    reason: `Don't ask random questions! Address the customer's request directly as a professional ${jobTitle}.`
+                };
+            }
+
             // Professional worker greeting / service indicators
             const workerServiceKeywords = [
                 'hello', 'hi', 'welcome', 'sure', 'certainly', 'absolutely', 'right away', 'happy to', 
@@ -600,24 +617,36 @@
 
             // Job-category specific keywords
             const categoryTerms = {
-                'Fast Food Cashier': ['burger', 'fries', 'soda', 'combo', 'meal', 'drink', 'order', 'total', 'here', 'register', 'window', 'enjoy'],
-                'Coffee Barista': ['coffee', 'latte', 'espresso', 'oat milk', 'caramel', 'cup', 'cappuccino', 'bagel', 'drink', 'syrup', 'hot', 'iced'],
-                'Junior Software Engineer': ['api', '500', 'code', 'bug', 'server', 'endpoint', 'fix', 'deploy', 'dark mode', 'toggle', 'test', 'repo'],
-                'Medical Doctor / Surgeon': ['ecg', 'patient', 'pressure', 'chest', 'vitals', 'doctor', 'prescription', 'symptoms', 'medicine', 'exam', 'check']
+                'Fast Food Cashier': ['burger', 'fries', 'soda', 'combo', 'meal', 'drink', 'order', 'total', 'here', 'register', 'window', 'enjoy', 'food', 'cashier'],
+                'Coffee Barista': ['coffee', 'latte', 'espresso', 'oat milk', 'caramel', 'cup', 'cappuccino', 'bagel', 'drink', 'syrup', 'hot', 'iced', 'barista'],
+                'Junior Software Engineer': ['api', '500', 'code', 'bug', 'server', 'endpoint', 'fix', 'deploy', 'dark mode', 'toggle', 'test', 'repo', 'software'],
+                'Medical Doctor / Surgeon': ['ecg', 'patient', 'pressure', 'chest', 'vitals', 'doctor', 'prescription', 'symptoms', 'medicine', 'exam', 'check', 'medical']
             };
 
             if (categoryTerms[jobTitle]) {
                 jobRelevantTerms.push(...categoryTerms[jobTitle]);
             }
 
-            // Check if response contains at least one worker service phrase or job relevant term
-            const hasServicePhrase = workerServiceKeywords.some(kw => lower.includes(kw));
-            const hasJobTerm = jobRelevantTerms.some(kw => lower.includes(kw));
+            // Include words from the job title itself
+            const titleWords = jobTitle.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+            jobRelevantTerms.push(...titleWords);
 
-            if (!hasServicePhrase && !hasJobTerm) {
+            // Check if response contains job-relevant terms or clear service action phrases
+            const hasJobTerm = jobRelevantTerms.some(kw => lower.includes(kw));
+            const hasServicePhrase = workerServiceKeywords.some(kw => lower.includes(kw));
+
+            // Block random questions that do not have job relevance
+            if (containsQuestion && !hasJobTerm) {
                 return {
                     valid: false,
-                    reason: `That doesn't sound like a real employee response! As a ${jobTitle}, answer politely (e.g. greet them, confirm their request, or state what you're doing to help).`
+                    reason: `Don't ask random questions! Answer or fulfill the customer's request like a real ${jobTitle}.`
+                };
+            }
+
+            if (!hasJobTerm && !hasServicePhrase) {
+                return {
+                    valid: false,
+                    reason: `Your answer isn't related to your job as a ${jobTitle}! Respond directly to what the customer requested.`
                 };
             }
 
