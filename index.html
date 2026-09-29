@@ -351,6 +351,20 @@
                     </div>
                 </div>
 
+                <!-- Customer 5-Sentence Dynamic Reply Display Box -->
+                <div id="customer-reply-card" class="hidden bg-slate-900/95 rounded-2xl p-5 border border-cyan-500/40 glow-blue space-y-3 transition-all duration-300">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                        <div class="flex items-center gap-2 text-cyan-400 font-bold text-xs">
+                            <i class="fa-solid fa-comments text-sm animate-pulse"></i>
+                            <span id="customer-reply-title">Customer Reply (Blended Feedback):</span>
+                        </div>
+                        <span class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">5-Sentence Response</span>
+                    </div>
+                    <p id="customer-reply-text" class="text-slate-200 text-xs sm:text-sm font-sans leading-relaxed italic bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
+                        <!-- Dynamic 5-sentence reply will appear here -->
+                    </p>
+                </div>
+
                 <!-- Text to type to help customer -->
                 <div class="space-y-2">
                     <div class="flex justify-between items-center text-xs font-semibold text-slate-400">
@@ -722,7 +736,8 @@
             errorCount: 0,
             currentPayRate: 10,
             rating: 5.0,
-            performanceMoney: 0
+            performanceMoney: 0,
+            awaitingNextCustomer: false
         };
 
         // Deduct cash with visual floating fee text & sound
@@ -940,82 +955,127 @@
             const msg = document.createElement('div');
             const isUser = sender === 'user';
             msg.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
-            msg.innerHTML = `
-                <div class="max-w-[85%] rounded-2xl p-4 text-sm leading-relaxed ${
-                    isUser ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-br-none' : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-none'
-                }">
-                    <div class="flex items-center gap-2 mb-1 text-[11px] font-semibold opacity-75">
-                        <i class="fa-solid ${isUser ? 'fa-user' : 'fa-robot'}"></i>
-                        <span>${isUser ? 'You (Candidate)' : 'Hiring Director AI'}</span>
-                    </div>
-                    <div class="whitespace-pre-wrap">${text}</div>
-                </div>
-            `;
+
+            const bubble = document.createElement('div');
+            bubble.className = `max-w-[80%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed whitespace-pre-line ${
+                isUser 
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-medium rounded-tr-none shadow-lg' 
+                    : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-tl-none shadow-md'
+            }`;
+            bubble.textContent = text;
+            msg.appendChild(bubble);
             chat.appendChild(msg);
             chat.scrollTop = chat.scrollHeight;
         }
 
-        // Evaluate Answer Logic
-        async function evaluateAnswer(jobTitle, step, userText) {
-            const clean = userText.trim();
-            const validation = validateRealText(clean);
-
-            if (!validation.valid) {
-                return {
-                    verdict: "WARN",
-                    feedback: validation.reason
-                };
-            }
-
-            return {
-                verdict: "GOOD",
-                feedback: `Fantastic answer! Your professional response shows great dedication for a ${jobTitle}.`
-            };
-        }
-
-        // Interview Form Submit
+        // Handle Interview Form Submission
         const interviewForm = document.getElementById('interview-form');
         if (interviewForm) {
-            interviewForm.addEventListener('submit', async (e) => {
+            interviewForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const input = document.getElementById('user-response-input');
-                const text = input.value.trim();
-                if (!text) return;
+                if (!input) return;
+                const answer = input.value.trim();
 
-                playSfx('click');
-                appendChatMessage('user', text);
-                input.value = '';
-
-                const evalRes = await evaluateAnswer(state.interviewJob.title, state.interviewStep, text);
-
-                if (evalRes.verdict === 'WARN') {
+                const validation = validateRealText(answer);
+                if (!validation.valid) {
                     playSfx('fail');
-                    appendChatMessage('interviewer', `⚠️ ${evalRes.feedback}`);
+                    appendChatMessage('interviewer', `⚠️ **Interview Feedback:** ${validation.reason}`);
                     return;
                 }
+
+                playSfx('type');
+                appendChatMessage('user', answer);
+                input.value = '';
+
+                const job = state.interviewJob;
+                if (!job) return;
 
                 if (state.interviewStep === 1) {
                     state.interviewStep = 2;
                     document.getElementById('interview-q-step').textContent = '2';
-                    const q2 = state.interviewJob.questions ? state.interviewJob.questions[1] : `How do you ensure customer satisfaction as a ${state.interviewJob.title}?`;
-                    appendChatMessage('interviewer', `Great answer! Now for **Question 2:** ${q2}`);
-                } else {
-                    playSfx('success');
-                    state.currentJob = state.interviewJob;
-                    state.jobsHeldCount++;
-                    if (state.interviewJob.title !== state.highestJobTitle) {
-                        state.highestJobTitle = state.interviewJob.title;
-                    }
-                    updateHud();
-
-                    confetti({ particleCount: 70, spread: 60 });
-                    appendChatMessage('interviewer', `🎉 **YOU ARE HIRED!**\n\n${evalRes.feedback}\n\nOpening customer waiting room now! Get ready to assist your first client.`);
-
                     setTimeout(() => {
-                        startWorkplaceShift();
-                    }, 1800);
+                        appendChatMessage('interviewer', `Great answer! Now for **Question 2:**\n\n${job.questions[1]}`);
+                        playSfx('click');
+                    }, 600);
+                } else if (state.interviewStep === 2) {
+                    setTimeout(() => {
+                        appendChatMessage('interviewer', `🎉 **Congratulations!** Based on your responses, we are thrilled to offer you the position of **${job.title}**!\n\nStarting shift now...`);
+                        playSfx('success');
+
+                        setTimeout(() => {
+                            state.currentJob = job;
+                            state.jobsHeldCount++;
+                            if (job.tierNum > (state.highestJobTierNum || 0)) {
+                                state.highestJobTitle = job.title;
+                                state.highestJobTierNum = job.tierNum;
+                            }
+                            updateHud();
+                            startWorkplaceShift();
+                        }, 1800);
+                    }, 600);
                 }
             });
+        }
+
+        // Generator for a 5-sentence customer response that blends with user input
+        function generateCustomerReply(userText, customer, jobTitle) {
+            const cleanUser = userText.trim();
+            const lowerUser = cleanUser.toLowerCase();
+
+            // Extract topic or keyword from user text
+            const userWords = lowerUser.replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 3);
+            const stopWords = ['hello', 'please', 'thank', 'thanks', 'sure', 'would', 'about', 'your', 'this', 'that', 'with', 'have', 'from', 'they', 'will', 'there', 'here'];
+            const keyDetail = userWords.find(w => !stopWords.includes(w)) || 'request';
+
+            // Sentence 1: Enthusiastic initial reaction to user's tone
+            const greetings = [
+                `"Wow, thank you so much for responding so quickly and professionally!`,
+                `"That was an extraordinarily clear and helpful response!`,
+                `"I really appreciate you taking the time to explain everything so kindly.`,
+                `"Awesome, that is exactly what I was hoping to hear from an expert ${jobTitle}!`,
+                `"Thank you for handling my request with such great attention to detail.`
+            ];
+            const s1 = greetings[Math.floor(Math.random() * greetings.length)];
+
+            // Sentence 2: Blending directly with what the user said
+            let s2 = "";
+            if (lowerUser.includes('sorry') || lowerUser.includes('apolog')) {
+                s2 = `I appreciate your polite apology, but honestly you handled everything so fast that it was no trouble at all.`;
+            } else if (lowerUser.includes('check') || lowerUser.includes('fix') || lowerUser.includes('debug') || lowerUser.includes('order')) {
+                s2 = `It's fantastic that you were able to address the ${keyDetail} right away without any unnecessary delays.`;
+            } else {
+                s2 = `When you mentioned how you would manage the ${keyDetail}, it gave me total confidence in your service.`;
+            }
+
+            // Sentence 3: Customer personal perspective / relief
+            const experiences = [
+                `I was honestly a bit stressed about this situation before walking in today, but you made the whole process completely effortless.`,
+                `Other places usually take forever to handle something like this, so your speed and efficiency are truly impressive.`,
+                `I can really tell you take pride in your work as a ${jobTitle}, and that makes a massive difference for clients like me.`,
+                `Everything makes so much more sense now that you took the time to clarify the steps for me.`
+            ];
+            const s3 = experiences[Math.floor(Math.random() * experiences.length)];
+
+            // Sentence 4: Action customer promises to take
+            const actions = [
+                `I am definitely going to leave a glowing 5-star review for your stellar service today.`,
+                `I will follow your guidance immediately and get everything squared away on my end right now.`,
+                `I will make sure to request you personally the next time I need assistance at this location!`,
+                `I am going to make sure your manager knows just how exceptionally helpful you were.`
+            ];
+            const s4 = actions[Math.floor(Math.random() * actions.length)];
+
+            // Sentence 5: Warm closing statement
+            const closings = [
+                `Have a fantastic day ahead and keep up the amazing work!"`,
+                `Thanks again for all your help, and have a wonderful rest of your shift!"`,
+                `Take care, and I hope you have a great rest of your day!"`,
+                `You have been absolutely top-tier—cheers and enjoy your afternoon!"`
+            ];
+            const s5 = closings[Math.floor(Math.random() * closings.length)];
+
+            return `${s1} ${s2} ${s3} ${s4} ${s5}`;
         }
 
         // Start Customer Service Shift
@@ -1023,6 +1083,7 @@
             state.currentPayRate = state.currentJob.baseSalary || 10;
             state.rating = 5.0;
             state.performanceMoney = 0;
+            state.awaitingNextCustomer = false;
             document.getElementById('work-job-title').textContent = state.currentJob.title;
             document.getElementById('work-pay-rate-badge').textContent = `Rate: $${state.currentPayRate.toFixed(2)} / hr`;
             document.getElementById('stat-performance-money').textContent = `$0.00`;
@@ -1041,6 +1102,7 @@
 
         // Load Next Customer Request
         function loadNextCustomer() {
+            state.awaitingNextCustomer = false;
             const jobTitle = state.currentJob.title;
             const requests = CUSTOMER_REQUESTS[jobTitle] || CUSTOMER_REQUESTS['Default'];
             const customer = requests[state.customersServed % requests.length];
@@ -1050,6 +1112,23 @@
             state.currentTaskPayout = customer.payout;
             state.typingStartTime = null;
             state.errorCount = 0;
+
+            // Hide previous customer reply card
+            const replyCard = document.getElementById('customer-reply-card');
+            if (replyCard) replyCard.classList.add('hidden');
+
+            // Reset submit button state
+            const btnSubmit = document.getElementById('btn-submit-customer-task');
+            if (btnSubmit) {
+                btnSubmit.innerHTML = `<i class="fa-solid fa-circle-check text-base"></i><span>Submit & Collect Payment</span>`;
+                btnSubmit.className = "bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold px-5 py-3 rounded-xl shadow-lg shadow-emerald-500/20 flex flex-col sm:flex-row items-center justify-center gap-2 transition active:scale-95 text-xs sm:text-sm sm:w-auto w-full";
+            }
+
+            const typingInput = document.getElementById('work-typing-input');
+            if (typingInput) {
+                typingInput.disabled = false;
+                typingInput.value = '';
+            }
 
             document.getElementById('customer-name').textContent = `${customer.name}`;
             document.getElementById('customer-badge-type').textContent = customer.badge;
@@ -1063,7 +1142,6 @@
             document.getElementById('job-payout-status').textContent = `+$${customer.payout.toFixed(2)} Task Payout (+$${state.currentPayRate.toFixed(2)}/hr Rate)`;
 
             document.getElementById('work-target-text').textContent = customer.request;
-            document.getElementById('work-typing-input').value = '';
             document.getElementById('queue-badge').textContent = `${state.customerQueueCount} Waiting`;
             document.getElementById('stat-customers-count').textContent = state.customersServed;
             document.getElementById('work-typing-progress').textContent = `0% Completed`;
@@ -1155,6 +1233,12 @@
 
         // Process Customer Payment & Advance Task
         function submitCustomerTask() {
+            // If already awaiting next customer after reading reply, proceed to next
+            if (state.awaitingNextCustomer) {
+                loadNextCustomer();
+                return;
+            }
+
             const inputEl = document.getElementById('work-typing-input');
             if (!inputEl) return;
             const typed = inputEl.value.trim();
@@ -1187,6 +1271,20 @@
 
             playSfx('success');
             showPerformanceToast(true, `GREAT WORKER RESPONSE! Customer satisfied and paid!`, `+$${(state.currentTaskPayout + perfDelta).toFixed(2)} Earned`);
+
+            // Generate 5-Sentence Customer Blended Reply
+            const customerReply = generateCustomerReply(typed, state.currentCustomer, state.currentJob.title);
+            
+            // Display customer reply card
+            const replyCard = document.getElementById('customer-reply-card');
+            const replyText = document.getElementById('customer-reply-text');
+            const replyTitle = document.getElementById('customer-reply-title');
+
+            if (replyCard && replyText) {
+                replyTitle.textContent = `${state.currentCustomer.name}'s Response:`;
+                replyText.textContent = customerReply;
+                replyCard.classList.remove('hidden');
+            }
 
             state.performanceMoney += perfDelta;
             state.currentPayRate = Math.max(5.00, state.currentPayRate + payRateChange);
@@ -1232,7 +1330,15 @@
 
             document.getElementById('stat-shift-hours').textContent = `${state.shiftHoursWorked} hrs`;
 
-            loadNextCustomer();
+            // Lock input & update button to "Next Customer" so player can read the 5-sentence response
+            state.awaitingNextCustomer = true;
+            inputEl.disabled = true;
+
+            const btnSubmit = document.getElementById('btn-submit-customer-task');
+            if (btnSubmit) {
+                btnSubmit.innerHTML = `<span>Next Customer</span><i class="fa-solid fa-arrow-right text-base"></i>`;
+                btnSubmit.className = "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold px-5 py-3 rounded-xl shadow-lg shadow-cyan-500/20 flex flex-col sm:flex-row items-center justify-center gap-2 transition active:scale-95 text-xs sm:text-sm sm:w-auto w-full";
+            }
         }
 
         // Emergency Loan Button
